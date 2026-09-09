@@ -1,24 +1,64 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>KORbuild Finances — Wizard</title><link rel="stylesheet" href="styles.css">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>KORbuild Finances — Workspace Setup</title>
+<link rel="stylesheet" href="styles.css">
 </head>
 <body>
-<div id="wizard" class="wizard-page">
-  <div class="wizard-shell">
-    <header class="wizard-brand"><div class="brand-mark">K</div><div><strong>KORbuild</strong><span>Finances</span></div></header>
-    <div class="wizard-progress"><div><span>Configuração do espaço</span><strong id="stepCounter">1 de 5</strong></div><div class="step-track"><i id="stepProgress"></i></div></div>
-    <main class="wizard-card">
-      <div class="step step-active" data-step="1"><div class="step-icon">👤</div><div class="eyebrow">PASSO 1</div><h1>Vamos configurar seu espaço financeiro</h1><p>Antes de começar, precisamos de algumas informações básicas para personalizar sua experiência.</p><div class="form-grid"><label>Nome <input id="wName" placeholder="Como podemos chamar você?"></label><label>País onde você mora <select id="wCountry"><option value="">Selecione seu país</option><option>Estados Unidos</option><option>Itália</option><option>Portugal</option><option>Alemanha</option><option>Reino Unido</option><option>Outro</option></select></label><label>Moeda principal <select id="wCurrency"><option value="">Selecione a moeda</option><option>USD — Dólar americano</option><option>EUR — Euro</option><option>GBP — Libra esterlina</option><option>BRL — Real brasileiro</option></select></label></div></div>
-      <div class="step" data-step="2"><div class="step-icon">💰</div><div class="eyebrow">PASSO 2</div><h1>Onde está seu dinheiro hoje?</h1><p>Vamos registrar sua primeira conta e o saldo que você possui agora.</p><div class="form-grid"><label>Nome da conta <input id="wAccount" placeholder="Ex.: Conta corrente nos EUA"></label><label>Tipo de conta <select id="wAccountType"><option value="">Selecione</option><option>Conta corrente</option><option>Poupança</option><option>Conta digital</option><option>Dinheiro em espécie</option><option>Outro</option></select></label><label>Moeda <select id="wAccountCurrency"><option>USD</option><option>EUR</option><option>GBP</option><option>BRL</option></select></label><label>Saldo atual <div class="money-input"><span>R$</span><input id="wBalance" type="number" min="0" placeholder="0,00"></div></label></div><div class="helper">💡 O saldo representa quanto você possui hoje. Ele não é uma receita.</div></div>
-      <div class="step" data-step="3"><div class="step-icon">💵</div><div class="eyebrow">PASSO 3</div><h1>Como o dinheiro entra?</h1><p>Uma primeira receita já é suficiente para começarmos a entender sua capacidade de construir patrimônio.</p><div class="form-grid"><label>Descrição <input id="wIncomeDesc" placeholder="Ex.: Salário"></label><label>Categoria <select id="wIncomeCategory"><option value="">Selecione</option><option>Salário</option><option>Autônomo</option><option>Aluguel</option><option>Investimentos</option><option>Aposentadoria</option><option>Outro</option></select></label><label>Valor <div class="money-input"><span>R$</span><input id="wIncome" type="number" min="0" placeholder="0,00"></div></label><label>Frequência <select id="wFrequency"><option value="">Selecione</option><option>Mensal</option><option>Quinzenal</option><option>Semanal</option><option>Anual</option><option>Uma vez</option></select></label><label>Dia de recebimento <input id="wIncomeDay" type="number" min="1" max="31" placeholder="Ex.: 5"></label></div></div>
-      <div class="step" data-step="4"><div class="step-icon">🎯</div><div class="eyebrow">PASSO 4</div><h1>Onde você quer chegar?</h1><p>Defina o destino. O caminho para chegar até ele será construído no próximo passo.</p><div class="form-grid"><label>Nome do objetivo <input id="wGoalName" placeholder="Ex.: Comprar apartamento no Brasil"></label><label>Valor que deseja alcançar <div class="money-input"><span>R$</span><input id="wGoalTarget" type="number" min="1" placeholder="650000"></div></label><label>Data desejada <input id="wGoalDate" type="date"></label></div><div class="question"><strong>Você deseja considerar seu patrimônio atual neste objetivo?</strong><div class="choice-row"><button type="button" class="choice" data-choice="yes">Sim</button><button type="button" class="choice" data-choice="no">Não</button></div><div id="initialWealthWrap" class="hidden"><label>Quanto deseja considerar? <div class="money-input"><span>R$</span><input id="wInitial" type="number" min="0" placeholder="0,00"></div></label></div></div></div>
-      <div class="step" data-step="5"><div class="step-icon">📐</div><div class="eyebrow">PASSO 5</div><h1>Vamos transformar seu objetivo em um caminho</h1><p>Esta é uma primeira estimativa. Você poderá ajustar suas estratégias e acompanhar o realizado ao longo do tempo.</p><div class="plan-summary"><div><span>🎯 Seu objetivo</span><strong id="summaryGoal">—</strong></div><div><span>Valor</span><strong id="summaryTarget">R$ 0</strong></div><div><span>Prazo</span><strong id="summaryDeadline">—</strong></div><div><span>Patrimônio considerado</span><strong id="summaryInitial">R$ 0</strong></div></div><div class="estimate"><span>APORTE MENSAL ESTIMADO</span><strong id="summaryContribution">R$ 0/mês</strong><small>Estimativa inicial baseada nas informações fornecidas.</small></div><div class="strategies"><strong>🧭 Você poderá construir esse caminho por diferentes estratégias</strong><div><span>📈 Investimentos</span><span>🏠 Imóveis</span><span>💼 Negócios</span><span>💰 Outras estratégias</span></div></div><div class="helper">Você não precisa escolher tudo agora. O objetivo é o destino; a estratégia é o caminho.</div></div>
+<div id="financeWizard" class="wizard-page">
+  <header class="wizard-header">
+    <div class="wizard-brand"><div class="brand-mark">K</div><div><strong>KORbuild Finances</strong><span>Seu patrimônio. Seu futuro. Em construção.</span></div></div>
+    <button class="help-button" type="button">? <span>Ajuda</span></button>
+  </header>
+  <div class="wizard-layout">
+    <aside class="wizard-sidebar">
+      <nav class="wizard-steps" aria-label="Progresso da configuração">
+        <button class="wizard-step" data-step-link="1"><b>1</b><span><strong>Você</strong><small>Seu perfil básico</small></span></button>
+        <button class="wizard-step" data-step-link="2"><b>2</b><span><strong>Sua primeira conta</strong><small>Onde está seu dinheiro?</small></span></button>
+        <button class="wizard-step" data-step-link="3"><b>3</b><span><strong>Sua primeira receita</strong><small>Como o dinheiro entra?</small></span></button>
+        <button class="wizard-step active" data-step-link="4"><b>4</b><span><strong>Seu objetivo</strong><small>Onde você quer chegar?</small></span></button>
+        <button class="wizard-step" data-step-link="5"><b>5</b><span><strong>Seu primeiro plano</strong><small>Vamos traçar o caminho</small></span></button>
+      </nav>
+      <div class="wizard-quote"><div class="mountain">⚑</div><p>“Grandes conquistas começam com um objetivo bem definido.”</p><i></i></div>
+    </aside>
+    <main class="wizard-main">
+      <div class="wizard-card">
+        <div class="wizard-progress"><span>CONFIGURAÇÃO DO ESPAÇO</span><strong id="stepCounter">1 de 5</strong><i id="stepProgress"></i></div>
+        <div class="wizard-content">
+          <section class="step step-active" data-step="1">
+            <div class="step-icon">👤</div><div class="eyebrow">PASSO 1</div><h1>Vamos configurar seu espaço financeiro</h1><p class="lead">Antes de começar, precisamos de algumas informações básicas para personalizar sua experiência.</p>
+            <div class="form-grid"><label>Nome<input id="wName" placeholder="Como podemos chamar você?"></label><label>País onde você mora<select id="wCountry"><option value="">Selecione seu país</option><option>Estados Unidos</option><option>Itália</option><option>Portugal</option><option>Alemanha</option><option>Reino Unido</option><option>Outro</option></select></label><label>Moeda principal<select id="wCurrency"><option value="">Selecione a moeda</option><option>USD — Dólar americano</option><option>EUR — Euro</option><option>GBP — Libra esterlina</option><option>BRL — Real brasileiro</option></select></label></div>
+          </section>
+          <section class="step" data-step="2">
+            <div class="step-icon">💰</div><div class="eyebrow">PASSO 2</div><h1>Onde está seu dinheiro hoje?</h1><p class="lead">Vamos registrar sua primeira conta e o saldo que você possui agora.</p>
+            <div class="form-grid"><label>Nome da conta<input id="wAccount" placeholder="Ex.: Conta corrente nos EUA"></label><label>Tipo de conta<select id="wAccountType"><option value="">Selecione</option><option>Conta corrente</option><option>Poupança</option><option>Conta digital</option><option>Dinheiro em espécie</option><option>Outro</option></select></label><label>Moeda<select id="wAccountCurrency"><option>USD</option><option>EUR</option><option>GBP</option><option>BRL</option></select></label><label>Saldo atual<input id="wBalance" type="number" min="0" placeholder="0,00"></label></div><div class="helper">💡 O saldo representa quanto você possui hoje. Ele não é uma receita.</div>
+          </section>
+          <section class="step" data-step="3">
+            <div class="step-icon">💵</div><div class="eyebrow">PASSO 3</div><h1>Como o dinheiro entra?</h1><p class="lead">Uma primeira receita já é suficiente para começarmos a entender sua capacidade de construir patrimônio.</p>
+            <div class="form-grid"><label>Descrição<input id="wIncomeDesc" placeholder="Ex.: Salário"></label><label>Categoria<select id="wIncomeCategory"><option value="">Selecione</option><option>Salário</option><option>Autônomo</option><option>Aluguel</option><option>Investimentos</option><option>Aposentadoria</option><option>Outro</option></select></label><label>Valor<input id="wIncome" type="number" min="0" placeholder="0,00"></label><label>Frequência<select id="wFrequency"><option value="">Selecione</option><option>Mensal</option><option>Quinzenal</option><option>Semanal</option><option>Anual</option><option>Uma vez</option></select></label><label>Dia de recebimento<input id="wIncomeDay" type="number" min="1" max="31" placeholder="Ex.: 5"></label></div>
+          </section>
+          <section class="step" data-step="4">
+            <div class="step-icon">🎯</div><div class="eyebrow">PASSO 4</div><h1>Onde você quer chegar?</h1><p class="lead">Defina o destino. O caminho para chegar até ele será construído no próximo passo.</p>
+            <div class="form-grid"><label>Nome do objetivo<input id="wGoalName" placeholder="Ex.: Comprar apartamento no Brasil"></label><label>Valor que deseja alcançar <em>R$</em><input id="wGoalTarget" type="number" min="1" placeholder="650000"></label><label>Em quantos anos deseja alcançar?<div class="years-input"><input id="wGoalYears" type="number" min="1" step="1" placeholder="15"><span>anos</span></div></label><label>Data inicial (início do planejamento)<input id="wStartDate" type="date"></label></div>
+            <div id="estimatedDate" class="estimated-date"><strong>📅 Data estimada para alcançar o objetivo</strong><b id="estimatedDateValue">—</b><small id="estimatedDateText">Informe os anos e a data inicial para calcular.</small></div>
+            <div class="separator"></div>
+            <div class="question"><strong>Você deseja considerar seu patrimônio atual neste objetivo?</strong><div class="choice-row"><button type="button" class="choice" data-choice="yes">Sim</button><button type="button" class="choice" data-choice="no">Não</button></div><div id="initialWealthWrap" class="hidden"><label>Quanto deseja considerar?<input id="wInitial" type="number" min="0" placeholder="0,00"></label></div></div>
+          </section>
+          <section class="step" data-step="5">
+            <div class="step-icon">📐</div><div class="eyebrow">PASSO 5</div><h1>Vamos transformar seu objetivo em um caminho</h1><p class="lead">Esta é uma primeira estimativa. Você poderá ajustar suas estratégias e acompanhar o realizado ao longo do tempo.</p>
+            <div class="plan-summary"><div><span>🎯 Seu objetivo</span><strong id="summaryGoal">—</strong></div><div><span>Valor</span><strong id="summaryTarget">R$ 0</strong></div><div><span>Prazo</span><strong id="summaryYears">—</strong></div><div><span>Data estimada</span><strong id="summaryDeadline">—</strong></div><div><span>Patrimônio considerado</span><strong id="summaryInitial">R$ 0</strong></div></div>
+            <div class="estimate"><span>APORTE MENSAL ESTIMADO</span><strong id="summaryContribution">R$ 0/mês</strong><small>Estimativa inicial baseada nas informações fornecidas.</small></div>
+            <div class="strategies"><strong>🧭 Você poderá construir esse caminho por diferentes estratégias</strong><div><span>📈 Investimentos</span><span>🏠 Imóveis</span><span>💼 Negócios</span><span>💰 Outras estratégias</span></div></div>
+            <div class="helper">Você não precisa escolher tudo agora. O objetivo é o destino; a estratégia é o caminho.</div>
+          </section>
+        </div>
+        <footer class="wizard-footer"><button id="backBtn" class="secondary" type="button">← Voltar</button><div><span class="save-status">Seus dados são salvos neste dispositivo.</span><button id="nextBtn" class="primary" type="button">Continuar →</button></div></footer>
+      </div>
     </main>
-    <footer class="wizard-footer"><button id="backBtn" class="secondary">← Voltar</button><button id="nextBtn" class="primary">Continuar →</button></footer>
   </div>
 </div>
-<div id="dashboard" class="app hidden"></div>
 <script src="app.js"></script>
-</body></html>
+</body>
+</html>
