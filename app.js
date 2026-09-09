@@ -1,103 +1,33 @@
-const items=document.querySelectorAll('.nav-item,[data-page].link-btn');
-const pages=document.querySelectorAll('.page');
-const title=document.getElementById('pageTitle');
 const titles={dashboard:'Visão Geral',money:'Meu Dinheiro',budget:'Gastos e Orçamento',investments:'Investimentos',wealth:'Patrimônio',planning:'Planejamento',goals:'Objetivos'};
-
-function go(page){
-  pages.forEach(p=>p.classList.toggle('active-page',p.id===page));
-  document.querySelectorAll('.nav-item').forEach(n=>n.classList.toggle('active',n.dataset.page===page));
-  title.textContent=titles[page]||'Visão Geral';
-  window.scrollTo({top:0,behavior:'smooth'});
-}
-
-items.forEach(i=>i.addEventListener('click',()=>go(i.dataset.page)));
-
-function showGoalModal(){
-  document.getElementById('modal').classList.add('show');
-  const box=document.querySelector('.modal-box');
-  if(!document.getElementById('goalRate')){
-    const label=document.createElement('label');
-    label.innerHTML='Rentabilidade mensal (%)<input id="goalRate" type="number" step="0.01" value="1.05">';
-    const button=box.querySelector('.full');
-    box.insertBefore(label,button);
-  }
-}
-
-function hideGoalModal(){document.getElementById('modal').classList.remove('show')}
-
-function brl(value){
-  return value.toLocaleString('pt-BR',{style:'currency',currency:'BRL',maximumFractionDigits:0});
-}
-
-function calculateMonthlyContribution(target,initial,months,rate){
-  if(months<=0)return 0;
-  const r=rate/100;
-  if(r===0)return Math.max(0,(target-initial)/months);
-  const futureInitial=initial*Math.pow(1+r,months);
-  const factor=(Math.pow(1+r,months)-1)/r;
-  return Math.max(0,(target-futureInitial)/factor);
-}
-
-function createGoal(){
-  const inputs=document.querySelectorAll('#modal-box input');
-  const objectiveInput=document.querySelector('.modal-box label:nth-of-type(1) input');
-  const targetInput=document.querySelector('.modal-box label:nth-of-type(2) input');
-  const yearsInput=document.querySelector('.modal-box label:nth-of-type(3) input');
-  const initialInput=document.querySelector('.modal-box label:nth-of-type(4) input');
-  const rateInput=document.getElementById('goalRate');
-
-  const objective=objectiveInput?.value.trim()||'Construir patrimônio';
-  const target=Number(targetInput?.value)||0;
-  const years=Number(yearsInput?.value)||0;
-  const initial=Number(initialInput?.value)||0;
-  const rate=Number(rateInput?.value)||0;
-  const months=Math.max(0,Math.round(years*12));
-  const contribution=calculateMonthlyContribution(target,initial,months,rate);
-
-  const goalCard=document.querySelector('#goals .goal-card');
-  if(goalCard){
-    goalCard.querySelector('h3').textContent=objective+' de '+brl(target);
-    goalCard.querySelector('p').textContent=`Prazo: ${years} anos • Patrimônio inicial considerado: ${brl(initial)}`;
-    goalCard.querySelector('.goal-side strong').textContent=target>0?`${Math.min(100,(initial/target)*100).toFixed(1)}%`:'0%';
-  }
-
-  const hero=document.querySelector('.hero-goal h2');
-  if(hero)hero.textContent=objective+' de '+brl(target);
-  const heroValue=document.querySelector('.goal-numbers strong');
-  if(heroValue)heroValue.textContent=brl(initial);
-
-  const progressStrong=document.querySelector('.progress-head strong');
-  const progressBuilt=document.querySelector('.progress-foot span:first-child');
-  const progressRemaining=document.querySelector('.progress-foot span:last-child');
-  const progressBar=document.querySelector('.progress>div');
-  const progress=target>0?Math.min(100,(initial/target)*100):0;
-  if(progressStrong)progressStrong.textContent=`${progress.toFixed(1)}%`;
-  if(progressBuilt)progressBuilt.textContent=brl(initial)+' construídos';
-  if(progressRemaining)progressRemaining.textContent='Faltam '+brl(Math.max(0,target-initial));
-  if(progressBar)progressBar.style.width=progress+'%';
-
-  const metrics=document.querySelectorAll('#dashboard .metric');
-  if(metrics[0])metrics[0].querySelector('strong').textContent=brl(initial);
-  if(metrics[1])metrics[1].querySelector('strong').textContent=brl(contribution)+'/mês';
-  if(metrics[2])metrics[2].querySelector('strong').textContent=years+' anos';
-  if(metrics[2])metrics[2].querySelector('small').textContent=months+' meses';
-  if(metrics[3])metrics[3].querySelector('strong').textContent=rate.toFixed(2).replace('.',',')+'% a.m.';
-
-  const planningTarget=document.querySelector('#planning .card-title strong');
-  if(planningTarget)planningTarget.textContent=brl(contribution)+'/mês';
-  const planningTitle=document.querySelector('#planning .card-title div strong');
-  if(planningTitle)planningTitle.textContent='🎯 Objetivo: '+brl(target);
-  const base=document.querySelector('#planning .big-number');
-  if(base)base.textContent=brl(contribution)+'/mês';
-  const baseDescription=document.querySelector('#planning .big-number + .muted');
-  if(baseDescription)baseDescription.textContent=`Aporte estimado para ${brl(target)} em ${months} meses, partindo de ${brl(initial)} e usando a premissa de ${rate.toFixed(2).replace('.',',')}% a.m.`;
-
-  hideGoalModal();
-  go('goals');
-}
-
-const createButton=document.querySelector('.modal-box .full');
-if(createButton)createButton.onclick=createGoal;
-
-const modal=document.getElementById('modal');
-if(modal)modal.addEventListener('click',event=>{if(event.target===modal)hideGoalModal()});
+const defaultState={goals:[{id:1,name:'Construir patrimônio',target:1000000,years:10,initial:0,rate:1.05}],accounts:[],transactions:[],budgets:[],investments:[],assets:[],strategies:[{id:1,name:'Investimentos',amount:3000},{id:2,name:'Imóveis',amount:1500},{id:3,name:'Negócios',amount:500}]};
+let state=JSON.parse(localStorage.getItem('korbuild-finances-v11')||'null')||defaultState;
+const save=()=>localStorage.setItem('korbuild-finances-v11',JSON.stringify(state));
+const brl=v=>Number(v||0).toLocaleString('pt-BR',{style:'currency',currency:'BRL',maximumFractionDigits:0});
+const pct=v=>`${Number(v||0).toFixed(1).replace('.',',')}%`;
+function contribution(target,initial,months,rate){const r=rate/100;if(months<=0)return 0;if(r===0)return Math.max(0,(target-initial)/months);const f=Math.pow(1+r,months);return Math.max(0,(target-initial*f)/((f-1)/r));}
+function openModal(id){document.getElementById(id)?.classList.add('show')}
+function closeModal(id){document.getElementById(id)?.classList.remove('show')}
+function go(page){document.querySelectorAll('.page').forEach(p=>p.classList.toggle('active-page',p.id===page));document.querySelectorAll('.nav-item').forEach(n=>n.classList.toggle('active',n.dataset.page===page));document.getElementById('pageTitle').textContent=titles[page]||'Visão Geral';window.scrollTo({top:0,behavior:'smooth'});render()}
+function activeGoal(){return state.goals[0]||null}
+function wealth(){return state.assets.filter(a=>a.kind==='asset').reduce((s,a)=>s+a.value,0)-state.assets.filter(a=>a.kind==='liability').reduce((s,a)=>s+a.value,0)+state.investments.reduce((s,i)=>s+i.current,0)+state.accounts.reduce((s,a)=>s+a.balance,0)}
+function monthlyFlow(){const now=new Date();const m=now.getMonth(),y=now.getFullYear();const tx=state.transactions.filter(t=>{const d=new Date(t.date);return d.getMonth()===m&&d.getFullYear()===y});return {income:tx.filter(t=>t.type==='income').reduce((s,t)=>s+t.amount,0),expense:tx.filter(t=>t.type==='expense').reduce((s,t)=>s+t.amount,0)}}
+function render(){renderDashboard();renderMoney();renderBudgets();renderInvestments();renderWealth();renderPlanning();renderGoals()}
+function renderDashboard(){const g=activeGoal();if(!g)return;const current=Math.max(0,wealth(),g.initial);const progress=g.target?Math.min(100,current/g.target*100):0;const months=Math.round(g.years*12);const need=contribution(g.target,g.initial,months,g.rate);const el=id=>document.getElementById(id);if(el('dashGoalName'))el('dashGoalName').textContent=`${g.name} de ${brl(g.target)}`;if(el('dashGoalCurrent'))el('dashGoalCurrent').textContent=brl(current);if(el('dashGoalSub'))el('dashGoalSub').textContent='Seu caminho para construir patrimônio.';if(el('dashProgress'))el('dashProgress').textContent=pct(progress);if(el('dashProgressBar'))el('dashProgressBar').style.width=progress+'%';if(el('dashBuilt'))el('dashBuilt').textContent=brl(current)+' construídos';if(el('dashRemaining'))el('dashRemaining').textContent='Faltam '+brl(Math.max(0,g.target-current));if(el('dashWealth'))el('dashWealth').textContent=brl(current);if(el('dashContribution'))el('dashContribution').textContent=brl(need)+'/mês';if(el('dashYears'))el('dashYears').textContent=g.years+' anos';if(el('dashMonths'))el('dashMonths').textContent=months+' meses';if(el('dashRate'))el('dashRate').textContent=g.rate.toFixed(2).replace('.',',')+'% a.m.';const flow=monthlyFlow();if(el('riskBudget'))el('riskBudget').textContent=state.budgets.length?`${brl(flow.expense)} realizados`:'Sem dados';if(el('riskContribution'))el('riskContribution').textContent=state.transactions.length?'Acompanhando':'Sem dados';if(el('riskGoal'))el('riskGoal').textContent=current>0?'Em evolução':'Aguardando início';const total=state.strategies.reduce((s,x)=>s+x.amount,0);const ds=el('dashStrategies');if(ds)ds.innerHTML=state.strategies.length?state.strategies.map(s=>`<div class="strategy-row"><div><b>${s.name}</b><span>${brl(s.amount)}/mês</span></div><div class="mini-progress"><i style="width:${total?Math.round(s.amount/total*100):0}%"></i></div><em>${total?Math.round(s.amount/total*100):0}%</em></div>`).join(''):'<div class="empty-line">Nenhuma estratégia cadastrada.</div>';const tr=el('trajectory');if(tr){const bars=[];let value=g.initial;for(let i=0;i<8;i++){value=value*(1+g.rate/100)+need;const h=Math.min(100,Math.max(4,value/g.target*100));bars.push(`<div class="bar-chart" style="height:${h}%"><span>${2026+i}</span></div>`)}tr.innerHTML=bars.join('')}}
+function renderMoney(){const income=document.getElementById('moneyIncome'),expense=document.getElementById('moneyExpense'),available=document.getElementById('moneyAvailable');const f=monthlyFlow();if(income)income.textContent=brl(f.income);if(expense)expense.textContent=brl(f.expense);if(available)available.textContent=brl(f.income-f.expense);const a=document.getElementById('accountsList');if(a)a.innerHTML=state.accounts.length?state.accounts.map(x=>`<div class="list-row"><span><b>${x.name}</b><small class="muted">${x.currency}</small></span><strong>${brl(x.balance)}</strong><span class="badge">Ativa</span></div>`).join(''):'<div class="empty-line">Nenhuma conta cadastrada.</div>';const t=document.getElementById('transactionsList');if(t)t.innerHTML=state.transactions.length?state.transactions.slice().reverse().slice(0,8).map(x=>`<div class="list-row"><span><b>${x.description}</b><small class="muted">${x.category||'Sem categoria'}</small></span><strong class="${x.type==='expense'?'danger':'success'}">${x.type==='expense'?'-':'+'}${brl(x.amount)}</strong><span>${new Date(x.date).toLocaleDateString('pt-BR')}</span></div>`).join(''):'<div class="empty-line">Nenhuma movimentação registrada.</div>'}
+function renderBudgets(){const el=document.getElementById('budgetList');if(!el)return;el.innerHTML=state.budgets.length?`<div class="table-row th"><span>Categoria</span><span>Planejado</span><span>Realizado</span><span>Status</span></div>`+state.budgets.map(b=>{const spent=state.transactions.filter(t=>t.type==='expense'&&t.category?.toLowerCase()===b.category.toLowerCase()).reduce((s,t)=>s+t.amount,0);return `<div class="table-row"><span>${b.category}</span><span>${brl(b.planned)}</span><span>${brl(spent)}</span><span class="${spent>b.planned?'danger':'success'}">${spent>b.planned?'Acima':'Dentro'}</span></div>`}).join(''):'<div class="empty-line">Nenhum orçamento cadastrado.</div>'}
+function renderInvestments(){const applied=state.investments.reduce((s,x)=>s+x.applied,0),current=state.investments.reduce((s,x)=>s+x.current,0);document.getElementById('invApplied').textContent=brl(applied);document.getElementById('invCurrent').textContent=brl(current);document.getElementById('invReturn').textContent=applied?pct((current-applied)/applied*100):'—';const el=document.getElementById('investmentsList');if(el)el.innerHTML=state.investments.length?state.investments.map(x=>`<div class="list-row"><span><b>${x.name}</b><small class="muted">${x.type}</small></span><span>${brl(x.applied)}</span><strong>${brl(x.current)}</strong></div>`).join(''):'<div class="empty-line">Nenhum investimento cadastrado.</div>'}
+function renderWealth(){const total=wealth();document.getElementById('wealthTotal').textContent=brl(total);const assets=document.getElementById('assetsList'),liab=document.getElementById('liabilitiesList');const aa=state.assets.filter(x=>x.kind==='asset'),ll=state.assets.filter(x=>x.kind==='liability');if(assets)assets.innerHTML=aa.length?aa.map(x=>`<div class="list-row"><span>${x.name}</span><strong>${brl(x.value)}</strong><span>Ativo</span></div>`).join(''):'<div class="empty-line">Nenhum ativo cadastrado.</div>';if(liab)liab.innerHTML=ll.length?ll.map(x=>`<div class="list-row"><span>${x.name}</span><strong>${brl(x.value)}</strong><span>Passivo</span></div>`).join(''):'<div class="empty-line">Nenhum passivo cadastrado.</div>'}
+function renderPlanning(){const g=activeGoal();if(!g)return;const months=Math.round(g.years*12),need=contribution(g.target,g.initial,months,g.rate);document.getElementById('planTitle').textContent=`🎯 Objetivo: ${brl(g.target)}`;document.getElementById('planContribution').textContent=brl(need)+'/mês';document.getElementById('baseContribution').textContent=brl(need)+'/mês';document.getElementById('baseDescription').textContent=`Aporte estimado para ${brl(g.target)} em ${months} meses, partindo de ${brl(g.initial)} e usando ${g.rate.toFixed(2).replace('.',',')}% a.m.`;const total=state.strategies.reduce((s,x)=>s+x.amount,0),el=document.getElementById('planningStrategies');if(el)el.innerHTML=state.strategies.length?state.strategies.map(s=>`<div class="allocation"><div><div><b>${s.name}</b><span>${brl(s.amount)}/mês</span></div><div class="bar"><i style="width:${total?Math.round(s.amount/total*100):0}%"></i></div></div><strong>${total?Math.round(s.amount/total*100):0}%</strong></div>`).join(''):'<div class="empty-line">Nenhuma estratégia cadastrada.</div>'}
+function renderGoals(){const el=document.getElementById('goalsList');if(!el)return;el.innerHTML=state.goals.length?state.goals.map((g,i)=>{const current=Math.max(0,wealth(),g.initial),p=g.target?Math.min(100,current/g.target*100):0;return `<div class="goal-card"><div class="goal-icon">🎯</div><div><span class="section-label">${i===0?'OBJETIVO PRINCIPAL':'OBJETIVO'}</span><h3>${g.name} de ${brl(g.target)}</h3><p>Prazo: ${g.years} anos • Inicial: ${brl(g.initial)} • ${g.rate.toFixed(2).replace('.',',')}% a.m.</p></div><div class="goal-side"><strong>${pct(p)}</strong><span>progresso</span></div></div>`}).join(''):'<div class="card empty"><h3>Nenhum objetivo definido</h3><p>Comece escolhendo onde quer chegar.</p></div>'}
+function openGoalModal(){openModal('goalModal')}
+function createGoal(){const g={id:Date.now(),name:document.getElementById('goalName').value.trim()||'Construir patrimônio',target:Number(document.getElementById('goalTarget').value)||0,years:Number(document.getElementById('goalYears').value)||0,initial:Number(document.getElementById('goalInitial').value)||0,rate:Number(document.getElementById('goalRate').value)||0};if(!g.target||!g.years){alert('Informe valor alvo e prazo.');return}state.goals.unshift(g);state.goals=state.goals.slice(0,5);save();closeModal('goalModal');go('dashboard')}
+function createAccount(){const name=document.getElementById('accountName').value.trim();if(!name){alert('Informe o nome da conta.');return}state.accounts.push({id:Date.now(),name,currency:document.getElementById('accountCurrency').value,balance:Number(document.getElementById('accountBalance').value)||0});save();closeModal('accountModal');render()}
+function createTransaction(){const description=document.getElementById('txDescription').value.trim();const amount=Number(document.getElementById('txAmount').value)||0;if(!description||!amount){alert('Informe descrição e valor.');return}state.transactions.push({id:Date.now(),description,type:document.getElementById('txType').value,amount,category:document.getElementById('txCategory').value.trim(),date:new Date().toISOString()});save();closeModal('transactionModal');render()}
+function createBudget(){const category=document.getElementById('budgetCategory').value.trim(),planned=Number(document.getElementById('budgetPlanned').value)||0;if(!category||!planned){alert('Informe categoria e valor.');return}state.budgets.push({id:Date.now(),category,planned});save();closeModal('budgetModal');render()}
+function createInvestment(){const name=document.getElementById('invName').value.trim();if(!name){alert('Informe o investimento.');return}state.investments.push({id:Date.now(),name,type:document.getElementById('invType').value.trim()||'Não informado',applied:Number(document.getElementById('invAppliedInput').value)||0,current:Number(document.getElementById('invCurrentInput').value)||0});save();closeModal('investmentModal');render()}
+function createAsset(){const name=document.getElementById('assetName').value.trim(),value=Number(document.getElementById('assetValue').value)||0;if(!name||!value){alert('Informe nome e valor.');return}state.assets.push({id:Date.now(),name,kind:document.getElementById('assetKind').value,value});save();closeModal('assetModal');render()}
+function createStrategy(){const name=document.getElementById('strategyName').value.trim(),amount=Number(document.getElementById('strategyAmount').value)||0;if(!name||!amount){alert('Informe estratégia e aporte.');return}state.strategies.push({id:Date.now(),name,amount});save();closeModal('strategyModal');render()}
+function simulate(delta){const g=activeGoal();if(!g)return;const months=Math.round(g.years*12),base=contribution(g.target,g.initial,months,g.rate),test=Math.max(0,base+delta);document.getElementById('simulationResult').innerHTML=`Com <b>${brl(test)}/mês</b>, este cenário usa a mesma premissa de ${g.rate.toFixed(2).replace('.',',')}% a.m. e serve apenas para comparação. <button class="link-btn" onclick="document.getElementById('simulationResult').textContent=''">Limpar</button>`}
+document.querySelectorAll('.nav-item,[data-page].link-btn').forEach(i=>i.addEventListener('click',()=>go(i.dataset.page)));
+document.querySelectorAll('.modal').forEach(m=>m.addEventListener('click',e=>{if(e.target===m)closeModal(m.id)}));
+render();
