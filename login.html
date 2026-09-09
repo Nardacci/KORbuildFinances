@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>KORbuild Finances — Entrar</title>
+<link rel="stylesheet" href="styles.css">
+<style>
+html,body{height:100%;margin:0;overflow:hidden}body{background:#f6f8fb}.login-page{min-height:100vh;display:grid;place-items:center;padding:24px;box-sizing:border-box}.login-card{width:min(430px,100%);background:#fff;border:1px solid #e5e9f0;border-radius:20px;padding:38px;box-shadow:0 18px 50px rgba(20,30,50,.08)}.brand{display:flex;align-items:center;gap:12px;margin-bottom:30px}.brand-mark{width:42px;height:42px;border-radius:12px;display:grid;place-items:center;background:#182338;color:#fff;font-weight:800;font-size:22px}.brand strong{display:block;font-size:19px}.brand span{display:block;color:#718096;font-size:13px;margin-top:3px}.eyebrow{font-size:11px;letter-spacing:.12em;font-weight:700;color:#718096;margin-bottom:9px}.login-card h1{margin:0 0 9px;font-size:29px;color:#172033}.lead{margin:0 0 25px;color:#667085;line-height:1.5}.field{display:block;margin-bottom:17px;font-weight:700;font-size:13px;color:#344054}.field input{display:block;width:100%;box-sizing:border-box;margin-top:7px;border:1px solid #d8dee8;border-radius:10px;padding:13px 14px;font-size:15px;outline:none}.field input:focus{border-color:#667eea;box-shadow:0 0 0 3px rgba(102,126,234,.12)}.primary{width:100%;border:0;border-radius:10px;padding:14px 16px;background:#182338;color:#fff;font-weight:700;font-size:15px;cursor:pointer}.primary:disabled{opacity:.5;cursor:not-allowed}.error{min-height:20px;color:#c0392b;font-size:13px;margin:8px 0 4px}.demo{margin-top:18px;padding:12px 14px;background:#f7f8fa;border-radius:10px;color:#667085;font-size:12px;line-height:1.45}@media(max-width:520px){.login-card{padding:28px 22px}}
+</style>
+</head>
+<body>
+<main class="login-page"><section class="login-card" aria-labelledby="title"><div class="brand"><div class="brand-mark">K</div><div><strong>KORbuild Finances</strong><span>Seu patrimônio. Seu futuro. Em construção.</span></div></div><div class="eyebrow">ACESSO</div><h1>Bem-vindo de volta</h1><p class="lead">Entre para continuar sua jornada de construção de patrimônio.</p><form id="loginForm"><label class="field">E-mail<input id="email" type="email" autocomplete="email" placeholder="voce@email.com" required></label><label class="field">Senha<input id="password" type="password" autocomplete="current-password" placeholder="Sua senha" required minlength="6"></label><div id="error" class="error" role="alert"></div><button id="loginBtn" class="primary" type="submit">Entrar →</button></form><div class="demo">Nesta primeira entrega, a tela e a jornada estão preparadas. A autenticação real com Supabase será conectada no próximo passo do pacote de acesso.</div></section></main>
+<script>
+const form=document.getElementById('loginForm');const btn=document.getElementById('loginBtn');const error=document.getElementById('error');
+form.addEventListener('submit',e=>{e.preventDefault();error.textContent='';if(!form.reportValidity())return;btn.disabled=true;btn.textContent='Entrando…';setTimeout(()=>{sessionStorage.setItem('korbuild-finances-login-intent','true');window.location.href='index.html';},250);});
+</script>
+</body>
+</html>
