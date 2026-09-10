@@ -5,99 +5,87 @@
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>KORbuild Finances — Dashboard</title>
 <style>
-*{box-sizing:border-box}html,body{margin:0;min-height:100%;font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:#163126}body{background:#f4f8f6}.top{height:72px;background:#fff;border-bottom:1px solid #e3ebe7;display:flex;align-items:center;justify-content:space-between;padding:0 32px}.brand{display:flex;align-items:center;gap:11px;font-weight:800}.mark{width:38px;height:38px;border-radius:11px;background:#17724f;color:#fff;display:grid;place-items:center}.top button{border:1px solid #d8e3dd;background:#fff;border-radius:9px;padding:9px 14px;color:#315044;font-weight:700;cursor:pointer}.main{max-width:1180px;margin:0 auto;padding:36px 24px}.eyebrow{font-size:11px;letter-spacing:.14em;color:#20805d;font-weight:800}.title{font-size:34px;margin:9px 0 4px;letter-spacing:-.03em}.sub{margin:0 0 28px;color:#718078}.goal{background:linear-gradient(135deg,#123d2c,#23835e);color:#fff;border-radius:20px;padding:28px;display:grid;grid-template-columns:1fr auto;gap:20px}.goal h2{margin:8px 0 18px;font-size:25px}.goal-label{opacity:.75;font-size:12px}.goal-value{font-size:30px;font-weight:800}.progress{height:9px;background:rgba(255,255,255,.2);border-radius:99px;overflow:hidden;margin-top:20px}.bar{height:100%;width:0;background:#fff;transition:width .3s ease}.goal-side{text-align:right}.remaining{font-size:13px;opacity:.75}.remaining-value{font-size:23px;font-weight:800;margin-top:5px}.cards{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-top:20px}.card{background:#fff;border:1px solid #e0e9e4;border-radius:16px;padding:22px}.card span{display:block;color:#75837c;font-size:12px}.card strong{display:block;font-size:25px;margin-top:9px}.card small{display:block;margin-top:7px;color:#8b9791}.empty{margin-top:20px;background:#fff;border:1px dashed #cbd9d2;border-radius:16px;padding:24px;text-align:center;color:#718078;font-size:12px}.status{margin-top:14px;min-height:18px;text-align:center;font-size:12px;color:#b53b35}.hidden{display:none!important}@media(max-width:720px){.top{padding:0 18px}.main{padding:26px 16px}.goal{grid-template-columns:1fr}.goal-side{text-align:left}.cards{grid-template-columns:1fr}.title{font-size:28px}}
+:root{--bg:#f5f8f6;--surface:#fff;--line:#e1eae5;--text:#173128;--muted:#74827c;--green:#187652;--green-dark:#103d2c;--green-soft:#e9f5ef;--shadow:0 10px 30px rgba(21,57,43,.07)}
+*{box-sizing:border-box}html,body{margin:0;min-height:100%;font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:var(--text);background:var(--bg)}button{font:inherit}a{text-decoration:none;color:inherit}.app{min-height:100vh}.topbar{height:74px;background:#fff;border-bottom:1px solid var(--line);display:flex;align-items:center;padding:0 34px;gap:34px;position:sticky;top:0;z-index:10}.brand{display:flex;align-items:center;gap:10px;font-weight:800;font-size:17px;white-space:nowrap}.mark{width:38px;height:38px;border-radius:11px;background:var(--green-dark);color:#fff;display:grid;place-items:center;font-weight:900}.nav{display:flex;align-items:center;gap:5px;flex:1}.nav-item{border:0;background:transparent;color:#66766f;padding:10px 13px;border-radius:9px;font-size:13px;font-weight:700;cursor:pointer}.nav-item.active,.nav-item:hover{background:var(--green-soft);color:var(--green)}.top-actions{display:flex;align-items:center;gap:12px}.user{font-size:13px;font-weight:700;color:#53645d}.logout{border:1px solid #d7e2dc;background:#fff;border-radius:9px;padding:9px 14px;color:#315044;font-weight:700;cursor:pointer}.main{max-width:1220px;margin:0 auto;padding:34px 28px 55px}.intro{display:flex;justify-content:space-between;align-items:end;margin-bottom:24px}.eyebrow{font-size:11px;letter-spacing:.14em;color:#20805d;font-weight:800}.title{font-size:32px;letter-spacing:-.035em;margin:8px 0 5px}.sub{margin:0;color:var(--muted);font-size:14px}.updated{font-size:11px;color:#8a9791}.hero{background:linear-gradient(135deg,#103d2c,#23815e);color:#fff;border-radius:22px;padding:28px 30px;display:grid;grid-template-columns:minmax(0,1fr) 260px;gap:30px;box-shadow:var(--shadow)}.hero-label{font-size:11px;letter-spacing:.13em;opacity:.72;font-weight:800}.hero h2{font-size:27px;margin:9px 0 4px}.hero-target{font-size:14px;opacity:.78}.hero-bottom{display:flex;align-items:end;gap:30px;margin-top:28px}.hero-progress{flex:1}.progress-row{display:flex;justify-content:space-between;font-size:12px;opacity:.84;margin-bottom:8px}.progress{height:9px;background:rgba(255,255,255,.18);border-radius:99px;overflow:hidden}.bar{height:100%;width:0;background:#fff;border-radius:99px;transition:width .4s}.hero-side{border-left:1px solid rgba(255,255,255,.18);padding-left:28px;display:flex;flex-direction:column;justify-content:center}.hero-side span{font-size:11px;opacity:.7}.hero-side strong{font-size:28px;margin:5px 0 4px}.hero-side small{font-size:12px;opacity:.72}.metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin:18px 0}.card{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:20px;box-shadow:0 5px 18px rgba(21,57,43,.035)}.card-label{font-size:11px;color:var(--muted);font-weight:700}.card-value{font-size:24px;font-weight:800;margin-top:9px;letter-spacing:-.025em}.card-note{font-size:11px;color:#8b9791;margin-top:6px}.section-head{display:flex;justify-content:space-between;align-items:center;margin:28px 0 12px}.section-head small{font-size:11px;letter-spacing:.13em;color:#6d7d75;font-weight:800}.grid{display:grid;grid-template-columns:1.15fr .85fr;gap:18px}.panel{background:#fff;border:1px solid var(--line);border-radius:18px;padding:22px}.panel-title{font-size:16px;font-weight:800;margin-bottom:18px}.snapshot{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}.snapshot-item{background:#f7faf8;border:1px solid #e7eee9;border-radius:12px;padding:15px}.snapshot-item span{display:block;font-size:11px;color:var(--muted)}.snapshot-item strong{display:block;font-size:18px;margin-top:7px}.goal-details{display:grid;gap:13px}.detail{display:flex;justify-content:space-between;gap:20px;padding-bottom:13px;border-bottom:1px solid #edf1ef;font-size:13px}.detail:last-child{border-bottom:0;padding-bottom:0}.detail span{color:var(--muted)}.detail strong{text-align:right}.empty{margin-top:18px;border:1px dashed #cbd9d2;border-radius:15px;padding:20px;text-align:center;color:#718078;font-size:12px;background:#fbfdfc}.status{margin-top:14px;min-height:18px;text-align:center;font-size:12px;color:#b53b35}.hidden{display:none!important}.version{text-align:center;color:#9aa59f;font-size:10px;margin-top:28px}
+@media(max-width:900px){.topbar{padding:0 18px;gap:15px}.nav{overflow:auto}.nav-item{white-space:nowrap}.user{display:none}.hero{grid-template-columns:1fr}.hero-side{border-left:0;border-top:1px solid rgba(255,255,255,.18);padding:18px 0 0}.metrics{grid-template-columns:repeat(2,1fr)}.grid{grid-template-columns:1fr}.main{padding:28px 16px 45px}.intro{display:block}.updated{display:block;margin-top:10px}}
+@media(max-width:560px){.topbar{height:66px}.brand span{display:none}.nav-item{padding:9px 8px;font-size:12px}.metrics{grid-template-columns:1fr}.snapshot{grid-template-columns:1fr}.hero{padding:23px}.hero-bottom{display:block}.hero-side{margin-top:22px}.title{font-size:27px}}
 </style>
 </head>
 <body>
-<header class="top"><div class="brand"><div class="mark">K</div><span>KORbuild Finances</span></div><button id="logout">Sair</button></header>
+<div class="app">
+<header class="topbar">
+  <a class="brand" href="dashboard.html"><div class="mark">K</div><span>KORbuild Finances</span></a>
+  <nav class="nav" aria-label="Navegação principal">
+    <button class="nav-item active" type="button">Dashboard</button>
+    <button class="nav-item" type="button" data-coming="Contas">Contas</button>
+    <button class="nav-item" type="button" data-coming="Receitas">Receitas</button>
+    <button class="nav-item" type="button" data-coming="Objetivos">Objetivos</button>
+    <button class="nav-item" type="button" data-coming="Planejamento">Planejamento</button>
+  </nav>
+  <div class="top-actions"><span class="user" id="userName">—</span><button class="logout" id="logout">Sair</button></div>
+</header>
 <main class="main">
-<div class="eyebrow">MEU ESPAÇO FINANCEIRO</div>
-<h1 class="title" id="hello">Minha jornada financeira</h1>
-<p class="sub">Seu dinheiro no exterior. Seu patrimônio no Brasil.</p>
-<section class="goal">
-<div><div class="goal-label">🎯 MEU OBJETIVO</div><h2 id="goalName">Carregando...</h2><div class="goal-value" id="goalTarget">R$ 0</div><div class="progress"><div class="bar" id="bar"></div></div></div>
-<div class="goal-side"><div class="remaining">Falta</div><div class="remaining-value" id="remaining">R$ 0</div><div class="remaining" id="deadline">—</div></div>
-</section>
-<section class="cards">
-<div class="card"><span>💎 Patrimônio considerado</span><strong id="wealth">R$ 0</strong><small>Base inicial do objetivo</small></div>
-<div class="card"><span>💰 Saldo inicial</span><strong id="balance">R$ 0</strong><small id="balanceNote">Contas registradas</small></div>
-<div class="card"><span>📐 Aporte mensal estimado</span><strong id="monthly">R$ 0</strong><small>Projeção inicial</small></div>
-</section>
-<div class="empty">Este é o primeiro cockpit do Finances. As próximas entregas vão adicionar evolução, orçamento, investimentos e patrimônio.</div>
-<div id="status" class="status hidden" role="alert"></div>
+  <section class="intro"><div><div class="eyebrow">MEU ESPAÇO FINANCEIRO</div><h1 class="title" id="hello">Minha jornada financeira</h1><p class="sub">Seu dinheiro no exterior. Seu patrimônio no Brasil.</p></div><span class="updated" id="updated">Dados carregados agora</span></section>
+  <section class="hero">
+    <div>
+      <div class="hero-label">🎯 MEU OBJETIVO</div>
+      <h2 id="goalName">Carregando...</h2>
+      <div class="hero-target">Meta de <strong id="goalTarget">R$ 0</strong></div>
+      <div class="hero-bottom"><div class="hero-progress"><div class="progress-row"><span id="progressText">0% alcançado</span><span id="remainingHero">Falta R$ 0</span></div><div class="progress"><div class="bar" id="bar"></div></div></div></div>
+    </div>
+    <div class="hero-side"><span>DATA ESTIMADA</span><strong id="deadline">—</strong><small id="deadlineNote">Com base no seu planejamento</small></div>
+  </section>
+  <section class="metrics">
+    <article class="card"><div class="card-label">💎 PATRIMÔNIO ATUAL</div><div class="card-value" id="wealth">R$ 0</div><div class="card-note">Saldo das contas registradas</div></article>
+    <article class="card"><div class="card-label">💰 RECEITA REGISTRADA</div><div class="card-value" id="income">R$ 0</div><div class="card-note" id="incomeNote">Primeira receita</div></article>
+    <article class="card"><div class="card-label">📐 APORTE PLANEJADO</div><div class="card-value" id="monthly">R$ 0</div><div class="card-note">Projeção do seu objetivo</div></article>
+    <article class="card"><div class="card-label">📅 HORIZONTE</div><div class="card-value" id="years">—</div><div class="card-note">Prazo definido para o objetivo</div></article>
+  </section>
+  <div class="section-head"><small>VISÃO FINANCEIRA</small></div>
+  <section class="grid">
+    <article class="panel"><div class="panel-title">Onde você está agora</div><div class="snapshot"><div class="snapshot-item"><span>Patrimônio atual</span><strong id="snapshotWealth">R$ 0</strong></div><div class="snapshot-item"><span>Meta financeira</span><strong id="snapshotTarget">R$ 0</strong></div><div class="snapshot-item"><span>Já conquistado</span><strong id="snapshotProgress">0%</strong></div><div class="snapshot-item"><span>Quanto falta</span><strong id="snapshotRemaining">R$ 0</strong></div></div></article>
+    <article class="panel"><div class="panel-title">Seu planejamento</div><div class="goal-details"><div class="detail"><span>Objetivo</span><strong id="detailGoal">—</strong></div><div class="detail"><span>Patrimônio considerado no início</span><strong id="detailInitial">R$ 0</strong></div><div class="detail"><span>Aporte mensal estimado</span><strong id="detailMonthly">R$ 0</strong></div><div class="detail"><span>Data de início</span><strong id="detailStart">—</strong></div><div class="detail"><span>Data estimada</span><strong id="detailDeadline">—</strong></div></div></article>
+  </section>
+  <div class="empty">O dashboard já está conectado aos seus dados reais. Contas, receitas, objetivos e planejamento serão evoluídos nas próximas entregas sem perder esta visão central.</div>
+  <div id="status" class="status hidden" role="alert"></div>
+  <div class="version">KORbuild Finances · MVP · Dashboard V1</div>
 </main>
+</div>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="supabase-config.js"></script>
 <script src="auth.js"></script>
 <script>
-(() => {
-  'use strict';
-  const brl = v => Number(v || 0).toLocaleString('pt-BR',{style:'currency',currency:'BRL',maximumFractionDigits:0});
-  const el = id => document.getElementById(id);
-  const showError = text => { el('status').textContent = text; el('status').classList.remove('hidden'); };
-
-  function estimatedDeadline(startDate, years){
-    if(!startDate || !years) return '—';
-    const d = new Date(startDate + 'T00:00:00');
-    d.setFullYear(d.getFullYear() + Number(years));
-    return d.toLocaleDateString('pt-BR');
-  }
-
-  async function loadDashboard(){
-    const session = await KORbuildAuth.session();
-    if(!session?.user){ window.location.replace('index.html'); return; }
-
-    const db = KORbuildAuth.client.schema('finances');
-    const {data:w,error:we} = await db.from('user_workspaces')
-      .select('id,display_name,setup_completed')
-      .eq('user_id',session.user.id)
-      .maybeSingle();
-    if(we) throw we;
-    if(!w){ window.location.replace('workspace.html'); return; }
-    if(!w.setup_completed){ window.location.replace('workspace.html'); return; }
-
-    el('hello').textContent = `Olá, ${w.display_name || 'você'}`;
-
-    const {data:g,error:ge} = await db.from('goals')
-      .select('name,target_amount,target_years,start_date,initial_wealth')
-      .eq('workspace_id',w.id)
-      .order('created_at',{ascending:false})
-      .limit(1).maybeSingle();
-    if(ge) throw ge;
-
-    if(g){
-      const target = Number(g.target_amount || 0);
-      const wealth = Number(g.initial_wealth || 0);
-      el('goalName').textContent = g.name || 'Meu objetivo';
-      el('goalTarget').textContent = brl(target);
-      el('wealth').textContent = brl(wealth);
-      el('remaining').textContent = brl(Math.max(0,target-wealth));
-      el('deadline').textContent = estimatedDeadline(g.start_date,g.target_years);
-      el('bar').style.width = (target > 0 ? Math.min(100,(wealth/target)*100) : 0) + '%';
-    } else {
-      el('goalName').textContent = 'Nenhum objetivo configurado';
-      el('deadline').textContent = '—';
-    }
-
-    const {data:accounts,error:ae} = await db.from('accounts')
-      .select('opening_balance')
-      .eq('workspace_id',w.id);
-    if(ae) throw ae;
-    const totalBalance = (accounts || []).reduce((sum,a) => sum + Number(a.opening_balance || 0),0);
-    el('balance').textContent = brl(totalBalance);
-    el('balanceNote').textContent = `${(accounts || []).length} ${(accounts || []).length === 1 ? 'conta registrada' : 'contas registradas'}`;
-
-    const {data:p,error:pe} = await db.from('plans')
-      .select('projected_monthly_contribution')
-      .eq('workspace_id',w.id)
-      .order('created_at',{ascending:false})
-      .limit(1).maybeSingle();
-    if(pe) throw pe;
-    if(p) el('monthly').textContent = brl(p.projected_monthly_contribution);
-  }
-
-  el('logout').addEventListener('click',async()=>{ await KORbuildAuth.logout(); window.location.replace('index.html'); });
-  loadDashboard().catch(error => { console.error('Dashboard load failed:',error); showError('Não foi possível carregar os dados do seu espaço financeiro.'); });
+(()=>{
+'use strict';
+const el=id=>document.getElementById(id); const brl=v=>Number(v||0).toLocaleString('pt-BR',{style:'currency',currency:'BRL',maximumFractionDigits:0});
+const dateBR=s=>s?new Date(s+'T12:00:00').toLocaleDateString('pt-BR'): '—';
+const errorBox=t=>{el('status').textContent=t;el('status').classList.remove('hidden');};
+function deadline(start,years){if(!start||!years)return null;const d=new Date(start+'T12:00:00');d.setFullYear(d.getFullYear()+Number(years));return d;}
+function formatIncome(amount,frequency){const labels={monthly:'mês',weekly:'semana',biweekly:'quinzena',yearly:'ano',annual:'ano'};return `${brl(amount)} / ${labels[String(frequency||'').toLowerCase()]||String(frequency||'período')}`;}
+async function load(){
+ const session=await KORbuildAuth.session(); if(!session?.user){location.replace('index.html');return;}
+ const db=KORbuildAuth.client.schema('finances');
+ const {data:w,error:we}=await db.from('user_workspaces').select('id,display_name,primary_currency,setup_completed').eq('user_id',session.user.id).maybeSingle();
+ if(we)throw we; if(!w||!w.setup_completed){location.replace('workspace.html');return;}
+ const name=w.display_name||'você';el('hello').textContent=`Olá, ${name}`;el('userName').textContent=name;
+ const [gr,ar,ir,pr]=await Promise.all([
+  db.from('goals').select('name,target_amount,target_years,start_date,initial_wealth,include_initial_wealth').eq('workspace_id',w.id).order('created_at',{ascending:false}).limit(1).maybeSingle(),
+  db.from('accounts').select('opening_balance').eq('workspace_id',w.id),
+  db.from('incomes').select('amount,currency,frequency,description').eq('workspace_id',w.id).order('created_at',{ascending:false}).limit(1).maybeSingle(),
+  db.from('plans').select('projected_monthly_contribution,projected_monthly_rate').eq('workspace_id',w.id).order('created_at',{ascending:false}).limit(1).maybeSingle()
+ ]);
+ if(gr.error)throw gr.error;if(ar.error)throw ar.error;if(ir.error)throw ir.error;if(pr.error)throw pr.error;
+ const g=gr.data,a=ar.data||[],i=ir.data,p=pr.data;
+ const wealth=a.reduce((sum,x)=>sum+Number(x.opening_balance||0),0);const target=Number(g?.target_amount||0);const pct=target>0?Math.min(100,(wealth/target)*100):0;const remaining=Math.max(0,target-wealth);const d=deadline(g?.start_date,g?.target_years);
+ el('goalName').textContent=g?.name||'Nenhum objetivo configurado';el('goalTarget').textContent=brl(target);el('wealth').textContent=brl(wealth);el('monthly').textContent=brl(p?.projected_monthly_contribution||0);el('years').textContent=g?.target_years?`${g.target_years} anos`:'—';el('bar').style.width=pct+'%';el('progressText').textContent=`${pct.toLocaleString('pt-BR',{maximumFractionDigits:1})}% alcançado`;el('remainingHero').textContent=`Falta ${brl(remaining)}`;el('deadline').textContent=d?d.toLocaleDateString('pt-BR'):'—';el('deadlineNote').textContent=g?.target_years?'Com base no prazo definido':'Defina um objetivo para planejar';
+ el('snapshotWealth').textContent=brl(wealth);el('snapshotTarget').textContent=brl(target);el('snapshotProgress').textContent=pct.toLocaleString('pt-BR',{maximumFractionDigits:1})+'%';el('snapshotRemaining').textContent=brl(remaining);
+ el('detailGoal').textContent=g?.name||'—';el('detailInitial').textContent=brl(g?.initial_wealth||0);el('detailMonthly').textContent=brl(p?.projected_monthly_contribution||0);el('detailStart').textContent=dateBR(g?.start_date);el('detailDeadline').textContent=d?d.toLocaleDateString('pt-BR'):'—';
+ if(i){el('income').textContent=formatIncome(i.amount,i.frequency);el('incomeNote').textContent=i.description||'Receita registrada';}else{el('income').textContent='—';el('incomeNote').textContent='Nenhuma receita registrada';}
+ el('updated').textContent='Dados carregados agora';
+}
+el('logout').addEventListener('click',async()=>{await KORbuildAuth.logout();location.replace('index.html');});
+document.querySelectorAll('[data-coming]').forEach(btn=>btn.addEventListener('click',()=>{errorBox(`${btn.dataset.coming} será liberado na próxima etapa do MVP.`);}));
+load().catch(err=>{console.error('Dashboard load failed:',err);errorBox('Não foi possível carregar os dados do seu espaço financeiro.');});
 })();
 </script>
 </body>
