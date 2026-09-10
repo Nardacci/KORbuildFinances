@@ -1,3 +1,20 @@
+/* KORbuild Finances — Workspace Setup UI adjustments + wizard logic */
+(function(){
+  const style=document.createElement('style');
+  style.textContent=`
+    .wizard-content{padding-top:10px!important;padding-bottom:16px!important}
+    .step-icon{display:none!important}
+    .wizard-step b{font-size:0!important}
+    .wizard-step b::after{font-size:18px;line-height:1}
+    .wizard-step[data-step-link="1"] b::after{content:'👤'}
+    .wizard-step[data-step-link="2"] b::after{content:'💰'}
+    .wizard-step[data-step-link="3"] b::after{content:'💵'}
+    .wizard-step[data-step-link="4"] b::after{content:'🎯'}
+    .wizard-step[data-step-link="5"] b::after{content:'📐'}
+  `;
+  document.head.appendChild(style);
+})();
+
 const STORAGE_KEY='korbuild-finances-wizard-v2';
 const wizardState=JSON.parse(localStorage.getItem(STORAGE_KEY)||'{}');
 let step=Number(wizardState.step)||1;
