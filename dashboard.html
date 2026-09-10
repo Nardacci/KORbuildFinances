@@ -3,14 +3,14 @@
 <head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>KORbuild Finances · Dashboard</title>
-<link rel="stylesheet" href="dashboard.css?v=2.0.0">
+<link rel="stylesheet" href="dashboard.css?v=3.0.0">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="supabase-config.js"></script><script src="auth.js"></script>
 </head>
 <body>
 <div class="app-shell">
-<aside class="sidebar">
+<aside class="sidebar" id="sidebar">
 <a class="side-brand" href="dashboard.html"><div class="mini-mark">K</div><div>KOR<span>build</span></div><span class="demo-badge">FINANCES</span></a>
 <nav class="nav" aria-label="Navegação principal">
 <a class="nav-item active" href="dashboard.html"><span>⌂</span><span data-i18n="menuDashboard">Dashboard</span></a>
@@ -19,15 +19,17 @@
 <a class="nav-item disabled" href="#" data-coming><span>🎯</span><span data-i18n="menuGoals">Objetivos</span></a>
 <a class="nav-item disabled" href="#" data-coming><span>⌁</span><span data-i18n="menuPlanning">Planejamento</span></a>
 </nav>
-<div class="side-bottom"><a class="nav-item" href="workspace.html"><span>⚙</span><span data-i18n="menuSetup">Configuração financeira</span></a></div>
+<div class="side-bottom"><a class="nav-item" href="settings.html"><span>⚙</span><span data-i18n="menuSetup">Configuração financeira</span></a></div>
 </aside>
+<button id="mobile-sidebar-toggle" class="mobile-sidebar-toggle" type="button" aria-label="Abrir menu">☰</button>
+<div id="sidebar-overlay" class="sidebar-overlay"></div>
 <main class="main-content">
 <header class="topbar">
 <div class="page-context"><strong data-i18n="dashboard">Dashboard</strong><small data-i18n="sub">Visão geral da sua jornada financeira e dos principais indicadores.</small></div>
 <div class="top-actions">
 <button id="language-toggle" class="language-toggle" type="button" aria-label="Idioma">🇺🇸</button>
 <div class="user-menu-wrap"><button id="user-menu-btn" class="user-menu-btn" type="button" aria-expanded="false"><span class="user-copy"><strong id="user-name">André Nardacci</strong><small id="user-email"></small></span><span class="avatar" id="user-avatar">AN</span><span class="chevron">⌄</span></button>
-<div id="user-menu" class="user-menu hidden"><div class="menu-header"><span class="avatar" id="menu-avatar">AN</span><div><b id="menu-full-name">André Nardacci</b><small id="menu-full-email"></small></div></div><div class="menu-divider"></div><a class="menu-item" href="workspace.html"><span>⚙</span><span data-i18n="menuSetup">Configuração financeira</span></a><div class="menu-divider"></div><button class="menu-item danger" id="logout" type="button"><span>↪</span><span data-i18n="logout">Sair</span></button></div></div>
+<div id="user-menu" class="user-menu hidden"><div class="menu-header"><span class="avatar" id="menu-avatar">AN</span><div><b id="menu-full-name">André Nardacci</b><small id="menu-full-email"></small></div></div><div class="menu-divider"></div><a class="menu-item" href="settings.html"><span>⚙</span><span data-i18n="menuSetup">Configuração financeira</span></a><div class="menu-divider"></div><button class="menu-item danger" id="logout" type="button"><span>↪</span><span data-i18n="logout">Sair</span></button></div></div>
 </div>
 </header>
 <section class="intro"><div class="eyebrow" data-i18n="tag">SEU ESPAÇO FINANCEIRO</div><h1 id="hello">Olá, André Nardacci</h1><p data-i18n="subtitle">Seu dinheiro no exterior. Seu patrimônio no Brasil.</p></section>
@@ -38,8 +40,5 @@
 <div id="emptyState" class="empty-state hidden">O dashboard está conectado aos seus dados reais. Os próximos módulos vão ampliar esta visão sem perder o cockpit central.</div><div id="status" class="status hidden" role="alert"></div>
 </main><div class="app-version">KORbuild Finances V1.0.0 · Development environment</div><button class="ai-fab" type="button" aria-label="KORbuild AI"><span>✦ AI</span></button>
 </div>
-<script>
-(()=>{const I={pt:{dashboard:'Dashboard',sub:'Visão geral da sua jornada financeira e dos principais indicadores.',menuDashboard:'Dashboard',menuAccounts:'Contas',menuIncome:'Receitas',menuGoals:'Objetivos',menuPlanning:'Planejamento',menuSetup:'Configuração financeira',logout:'Sair',tag:'SEU ESPAÇO FINANCEIRO',subtitle:'Seu dinheiro no exterior. Seu patrimônio no Brasil.',goal:'MEU OBJETIVO',remaining:'Falta',deadline:'DATA ESTIMADA',wealth:'Patrimônio considerado',balance:'Saldo atual',monthly:'Aporte mensal',overview:'VISÃO FINANCEIRA',where:'Onde estou agora',planning:'Meu planejamento',next:'PRÓXIMO PASSO',nextText:'Mantenha suas contas e movimentações atualizadas para que seu patrimônio reflita sua situação real.',horizon:'Horizonte',currentIncome:'Receita mensal informada'},en:{dashboard:'Dashboard',sub:'Overview of your financial journey and key indicators.',menuDashboard:'Dashboard',menuAccounts:'Accounts',menuIncome:'Income',menuGoals:'Goals',menuPlanning:'Planning',menuSetup:'Financial setup',logout:'Sign out',tag:'YOUR FINANCIAL SPACE',subtitle:'Your money abroad. Your wealth in Brazil.',goal:'MY GOAL',remaining:'Remaining',deadline:'ESTIMATED DATE',wealth:'Considered wealth',balance:'Current balance',monthly:'Monthly contribution',overview:'FINANCIAL VIEW',where:'Where I am now',planning:'My planning',next:'NEXT STEP',nextText:'Keep your accounts and transactions updated so your wealth reflects your real situation.',horizon:'Horizon',currentIncome:'Monthly income reported'}};let en=localStorage.getItem('korbuild-language')==='en-US';const apply=()=>{en=localStorage.getItem('korbuild-language')==='en-US';document.documentElement.lang=en?'en':'pt-BR';const t=en?I.en:I.pt;document.querySelectorAll('[data-i18n]').forEach(e=>{if(t[e.dataset.i18n])e.textContent=t[e.dataset.i18n]});const b=document.getElementById('language-toggle');if(b){b.textContent=en?'🇧🇷':'🇺🇸';b.title=en?'Switch to Portuguese':'Switch to English'}};apply();document.getElementById('language-toggle').addEventListener('click',()=>{localStorage.setItem('korbuild-language',en?'pt-BR':'en-US');apply()});document.querySelectorAll('[data-coming]').forEach(e=>e.addEventListener('click',x=>x.preventDefault()));})();
-</script>
-<script src="dashboard.js?v=2.0.0"></script>
+<script src="dashboard.js?v=3.0.0"></script>
 </body></html>
