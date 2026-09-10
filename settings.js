@@ -1,0 +1,13 @@
+/* KORbuild Finances — Settings V1 */
+(() => {
+  'use strict';
+  const $=id=>document.getElementById(id);
+  const db=()=>KORbuildAuth.client.schema('finances');
+  const initials=name=>String(name||'').trim().split(/\s+/).map(x=>x[0]).join('').slice(0,2).toUpperCase()||'A';
+  let workspace=null;
+  function header(user){const name=workspace?.display_name||user.user_metadata?.full_name||user.email?.split('@')[0]||'André';$('user-name').textContent=name;$('user-email').textContent=user.email||'';$('user-avatar').textContent=initials(name);$('menu-full-name').textContent=name;$('menu-full-email').textContent=user.email||'';$('menu-avatar').textContent=initials(name);$('user-menu-btn').addEventListener('click',e=>{e.stopPropagation();$('user-menu').classList.toggle('hidden');});document.addEventListener('click',e=>{if(!document.querySelector('.user-menu-wrap').contains(e.target))$('user-menu').classList.add('hidden');});$('logout').addEventListener('click',async()=>{await KORbuildAuth.logout();window.location.replace('index.html');});}
+  async function init(){const session=await KORbuildAuth.session();if(!session?.user){window.location.replace('index.html');return;}const {data,error}=await db().from('user_workspaces').select('id,display_name,country,primary_currency,setup_completed').eq('user_id',session.user.id).maybeSingle();if(error)throw error;if(!data){window.location.replace('workspace.html');return;}workspace=data;header(session.user);$('name').value=data.display_name||'';$('country').value=data.country||'';$('currency').value=data.primary_currency||'';}
+  $('cancel').addEventListener('click',()=>window.location.replace('dashboard.html'));
+  $('save').addEventListener('click',async()=>{const message=$('message');const button=$('save');button.disabled=true;message.className='save-message';message.textContent='Salvando…';try{const name=$('name').value.trim(),country=$('country').value,currency=$('currency').value;if(!name||!country||!currency)throw new Error('Preencha nome, país e moeda principal.');const {error}=await db().from('user_workspaces').update({display_name:name,country,primary_currency:currency}).eq('id',workspace.id);if(error)throw error;workspace.display_name=name;workspace.country=country;workspace.primary_currency=currency;header((await KORbuildAuth.session()).user);message.className='save-message ok';message.textContent='Alterações salvas com sucesso.';}catch(e){console.error(e);message.className='save-message error';message.textContent=e.message||'Não foi possível salvar as alterações.';}finally{button.disabled=false;}});
+  init().catch(e=>{console.error('Settings init failed',e);$('message').className='save-message error';$('message').textContent='Não foi possível carregar a configuração.';});
+})();
