@@ -16,7 +16,7 @@ window.KORbuildAuth = (() => {
     if (!sidebars.length) return;
     const file = (window.location.pathname.split('/').pop() || 'index.html').toLowerCase();
     const activeMap = {
-      'dashboard.html':'dashboard',
+      'dashboard.html':'dashboard','dashboard-movements.html':'dashboard',
       'incomes.html':'incomes','income-new.html':'incomes','income-edit.html':'incomes',
       'transfers.html':'transfers','transfer-new.html':'transfers','transfer-edit.html':'transfers',
       'accounts.html':'accounts','account-new.html':'accounts','account-edit.html':'accounts',
