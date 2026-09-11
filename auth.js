@@ -16,9 +16,10 @@ window.KORbuildAuth = (() => {
     if (!sidebars.length) return;
     const file = (window.location.pathname.split('/').pop() || 'index.html').toLowerCase();
     const activeMap = {
-      'dashboard.html':'dashboard','accounts.html':'accounts','account-new.html':'accounts','account-edit.html':'accounts',
+      'dashboard.html':'dashboard',
       'incomes.html':'incomes','income-new.html':'incomes','income-edit.html':'incomes',
-      'transfers.html':'transfers','transfer-new.html':'transfers',
+      'transfers.html':'transfers','transfer-new.html':'transfers','transfer-edit.html':'transfers',
+      'accounts.html':'accounts','account-new.html':'accounts','account-edit.html':'accounts',
       'investments.html':'investments','investment-new.html':'investments','investment-edit.html':'investments','investment-detail.html':'investments','investment-launches.html':'investments','investment-launch-new.html':'investments',
       'expenses.html':'expenses','expense-new.html':'expenses','expense-edit.html':'expenses',
       'planning.html':'planning','wealth-goal.html':'wealth',
@@ -30,11 +31,11 @@ window.KORbuildAuth = (() => {
       item('dashboard','dashboard.html','⌂','Dashboard'),
       item('incomes','incomes.html','💵','Receitas'),
       item('transfers','transfers.html','↔','Transferências'),
+      item('accounts','accounts.html','🏦','Contas'),
       item('investments','investments.html','📈','Investimentos'),
       item('expenses','expenses.html','💸','Despesas'),
       item('planning','planning.html','📅','Planejamento'),
       item('wealth','wealth-goal.html','🎯','Patrimônio &amp; Sonho'),
-      item('accounts','accounts.html','🏦','Contas'),
       item('config','cadastros.html','⚙','Configurações financeiras')
     ].join('');
     sidebars.forEach(sidebar => {
