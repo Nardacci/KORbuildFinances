@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>KORbuild Finances · Dashboard</title>
-<link rel="stylesheet" href="dashboard.css?v=4.0.0">
+<link rel="stylesheet" href="dashboard.css?v=5.0.0">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="supabase-config.js"></script><script src="auth.js"></script>
@@ -47,9 +47,8 @@
   <div class="goal-side"><small>FALTA</small><strong id="remaining">R$ 0</strong><small class="deadline-label">PREVISÃO</small><p id="deadline">—</p><span class="goal-status" id="goalStatus">—</span></div>
 </section>
 <section class="metric-grid">
-  <a class="metric metric-link" href="wealth-goal.html"><div class="metric-icon">💎</div><small>Patrimônio</small><strong id="wealth">R$ 0</strong><p id="wealthNote">Ver patrimônio</p></a>
+  <a class="metric metric-link metric-primary" href="wealth-goal.html"><div class="metric-icon">💎</div><small>Patrimônio</small><strong id="wealth">R$ 0</strong><p id="wealthNote">Contas + investimentos</p></a>
   <a class="metric metric-link" href="accounts.html"><div class="metric-icon">🏦</div><small>Contas</small><strong id="balance">R$ 0</strong><p id="accountCount">0 contas</p></a>
-  <a class="metric metric-link" href="incomes.html"><div class="metric-icon">💵</div><small>Receitas</small><strong id="income">R$ 0</strong><p id="incomeNote">Ver receitas</p></a>
   <a class="metric metric-link" href="investments.html"><div class="metric-icon">📈</div><small>Investimentos</small><strong id="investmentValue">R$ 0</strong><p id="investmentNote">Ver investimentos</p></a>
 </section>
 <div class="section-head"><div><div class="section-label">VISÃO FINANCEIRA</div><h2>Como estou agora?</h2></div><a href="planning.html">Ver planejamento →</a></div>
@@ -57,26 +56,33 @@
   <article class="panel month-panel">
     <div class="panel-top"><div><div class="section-label">MEU MÊS</div><h3 id="monthLabel">Resumo atual</h3></div><span class="period-chip">Agora</span></div>
     <div class="flow-list">
-      <div class="flow-row"><span><i class="dot income-dot"></i>Receitas</span><strong id="flowIncome">—</strong></div>
-      <div class="flow-row"><span><i class="dot investment-dot"></i>Investimentos</span><strong id="flowInvestment">—</strong></div>
-      <div class="flow-row"><span><i class="dot expense-dot"></i>Despesas</span><strong id="flowExpense">—</strong></div>
+      <div class="flow-row"><span><i class="dot income-dot"></i>Recebi</span><strong id="flowIncome">—</strong></div>
+      <div class="flow-row"><span><i class="dot transfer-dot"></i>Transferi</span><strong id="flowTransfer">—</strong></div>
+      <div class="flow-row"><span><i class="dot investment-dot"></i>Investi</span><strong id="flowInvestment">—</strong></div>
+      <div class="flow-row"><span><i class="dot expense-dot"></i>Gastei</span><strong id="flowExpense">—</strong></div>
     </div>
-    <div class="surplus"><span>Sobra</span><strong id="surplus">—</strong><small id="surplusNote">Será calculada com as movimentações do período.</small></div>
+    <div class="surplus"><span>Sobra</span><strong id="surplus">—</strong><small id="surplusNote">Será calculada quando as movimentações do período estiverem disponíveis.</small></div>
   </article>
   <article class="panel evolution-panel">
-    <div class="panel-top"><div><div class="section-label">EVOLUÇÃO</div><h3>Meu patrimônio</h3></div><span class="panel-link" id="evolutionPeriod">Histórico</span></div>
+    <div class="panel-top"><div><div class="section-label">EVOLUÇÃO</div><h3>Meu patrimônio</h3></div><a class="panel-link" href="wealth-goal.html">Ver histórico</a></div>
     <div class="evolution-value" id="evolutionValue">R$ 0</div>
-    <p id="evolutionNote">O histórico patrimonial será formado pelos fechamentos mensais.</p>
+    <p id="evolutionNote">O histórico real será formado pelos fechamentos patrimoniais mensais.</p>
     <div class="mini-chart" aria-hidden="true"><span style="height:22%"></span><span style="height:35%"></span><span style="height:31%"></span><span style="height:49%"></span><span style="height:58%"></span><span style="height:71%"></span><span style="height:66%"></span><span style="height:82%"></span></div>
   </article>
 </section>
-<section class="insight" id="insight"><div class="insight-icon">✦</div><div><div class="section-label">INTELIGÊNCIA</div><h3 id="insightTitle">Seu painel está conectado aos seus dados.</h3><p id="insightText">À medida que receitas, despesas, investimentos e fechamentos forem registrados, o sistema poderá transformar esses dados em orientações úteis.</p></div></section>
+<section class="insight" id="insight"><div class="insight-icon">✦</div><div><div class="section-label">INTELIGÊNCIA</div><h3 id="insightTitle">Seu painel está pronto para acompanhar sua jornada.</h3><p id="insightText">Conforme você registra receitas, investimentos e despesas, o sistema poderá transformar esses dados em orientações úteis.</p></div></section>
 <div id="status" class="status hidden" role="alert"></div>
 </main>
-<div class="app-version">KORbuild Finances V2.0.0 · Development environment</div>
+<div class="app-version">KORbuild Finances V2.1.0 · Development environment</div>
 <button class="quick-launch" id="quick-launch" type="button" aria-label="Lançar"><span>＋</span><b>Lançar</b></button>
 <div class="quick-menu hidden" id="quick-menu"><div class="quick-title">O que aconteceu?</div><a href="investments.html">📈 Investi</a><a href="expenses.html">💸 Gastei</a></div>
 <button class="ai-fab" type="button" aria-label="KORbuild AI"><span>✦ AI</span></button>
+<nav class="mobile-nav" aria-label="Navegação móvel">
+  <a class="mobile-nav-item active" href="dashboard.html"><span>⌂</span><small>Início</small></a>
+  <a class="mobile-nav-item" href="wealth-goal.html"><span>🎯</span><small>Patrimônio</small></a>
+  <button class="mobile-nav-action" id="mobile-launch" type="button" aria-label="Lançar"><span>＋</span><small>Lançar</small></button>
+  <a class="mobile-nav-item" href="settings.html"><span>👤</span><small>Perfil</small></a>
+</nav>
 </div>
-<script src="dashboard.js?v=4.0.0"></script>
+<script src="dashboard.js?v=5.0.0"></script>
 </body></html>
