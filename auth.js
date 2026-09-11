@@ -12,26 +12,34 @@ window.KORbuildAuth = (() => {
 /* KORbuild Finances — navegação global padronizada */
 (function standardizeSidebar() {
   function render() {
-    const sidebars = document.querySelectorAll('.sidebar'); if (!sidebars.length) return;
+    const sidebars = document.querySelectorAll('.sidebar');
+    if (!sidebars.length) return;
     const file = (window.location.pathname.split('/').pop() || 'index.html').toLowerCase();
-    const configPages = new Set(['cadastros.html','investment-types.html','investment-type-new.html','settings.html']);
-    const investmentPages = new Set(['investments.html','investment-new.html','investment-launches.html','investment-launch-new.html']);
-    const incomePages = new Set(['incomes.html','income-new.html','income-edit.html']);
-    const activeKey = file === 'dashboard.html' ? 'dashboard' : configPages.has(file) ? 'config' : file === 'accounts.html' ? 'accounts' : investmentPages.has(file) ? 'investments' : incomePages.has(file) ? 'incomes' : '';
-    const item = (key, href, icon, label, disabled = false) => {
-      const active = activeKey === key && !disabled; const classes = ['nav-item']; if (active) classes.push('active'); if (disabled) classes.push('disabled');
-      return `<a class="${classes.join(' ')}" href="${disabled ? '#' : href}"${disabled ? ' data-coming' : ''}><span>${icon}</span><span>${label}</span></a>`;
+    const activeMap = {
+      'dashboard.html':'dashboard','accounts.html':'accounts','account-new.html':'accounts','account-edit.html':'accounts',
+      'incomes.html':'incomes','income-new.html':'incomes','income-edit.html':'incomes',
+      'transfers.html':'transfers','transfer-new.html':'transfers',
+      'investments.html':'investments','investment-new.html':'investments','investment-edit.html':'investments','investment-detail.html':'investments','investment-launches.html':'investments','investment-launch-new.html':'investments',
+      'expenses.html':'expenses','expense-new.html':'expenses','expense-edit.html':'expenses',
+      'planning.html':'planning','wealth-goal.html':'wealth',
+      'cadastros.html':'config','settings.html':'config','investment-types.html':'config','investment-type-new.html':'config'
     };
+    const activeKey = activeMap[file] || '';
+    const item = (key, href, icon, label) => `<a class="nav-item${activeKey === key ? ' active' : ''}" href="${href}"><span>${icon}</span><span>${label}</span></a>`;
     const navigation = [
       item('dashboard','dashboard.html','⌂','Dashboard'),
-      item('config','cadastros.html','▤','Configurações financeiras'),
-      item('accounts','accounts.html','▣','Contas'),
+      item('incomes','incomes.html','💵','Receitas'),
+      item('transfers','transfers.html','↔','Transferências'),
       item('investments','investments.html','📈','Investimentos'),
-      item('incomes','incomes.html','↗','Receitas'),
-      item('', '#','🎯','Objetivos',true),
-      item('', '#','⌁','Planejamento',true)
+      item('expenses','expenses.html','💸','Despesas'),
+      item('planning','planning.html','📅','Planejamento'),
+      item('wealth','wealth-goal.html','🎯','Patrimônio &amp; Sonho'),
+      item('accounts','accounts.html','🏦','Contas'),
+      item('config','cadastros.html','⚙','Configurações financeiras')
     ].join('');
-    sidebars.forEach(sidebar => { sidebar.innerHTML = `<a class="side-brand" href="dashboard.html"><div class="mini-mark">K</div><div>KOR<span>build</span></div><span class="demo-badge">FINANCES</span></a><nav class="nav" aria-label="Navegação principal">${navigation}</nav><div class="side-bottom"></div>`; });
+    sidebars.forEach(sidebar => {
+      sidebar.innerHTML = `<a class="side-brand" href="dashboard.html"><div class="mini-mark">K</div><div>KOR<span>build</span></div><span class="demo-badge">FINANCES</span></a><nav class="nav" aria-label="Navegação principal">${navigation}</nav><div class="side-bottom"></div>`;
+    });
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', render, { once:true }); else render();
 })();
