@@ -1,41 +1,64 @@
-/* KORbuild Finances — Dashboard V3 */
+/* KORbuild Finances — Dashboard V4 */
 (() => {
   'use strict';
   const $=id=>document.getElementById(id);
   const brl=v=>Number(v||0).toLocaleString('pt-BR',{style:'currency',currency:'BRL',maximumFractionDigits:0});
   const db=()=>KORbuildAuth.client.schema('finances');
-  let workspace=null;
   function setText(id,value){const e=$(id);if(e)e.textContent=value;}
   function showError(message){const e=$('status');if(e){e.textContent=message;e.classList.remove('hidden');}}
-  function dateBR(value){if(!value)return '—';const d=new Date(value+'T12:00:00');return Number.isNaN(d.getTime())?'—':d.toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit',year:'numeric'});}
   function deadline(start,years){if(!start||!years)return null;const d=new Date(start+'T12:00:00');d.setFullYear(d.getFullYear()+Number(years));return d;}
   function initials(name){return String(name||'').trim().split(/\s+/).map(x=>x[0]).join('').slice(0,2).toUpperCase()||'A';}
-  const I={pt:{dashboard:'Dashboard',sub:'Visão geral da sua jornada financeira e dos principais indicadores.',menuDashboard:'Dashboard',menuAccounts:'Contas',menuIncome:'Receitas',menuGoals:'Objetivos',menuPlanning:'Planejamento',menuSetup:'Configuração financeira',logout:'Sair',tag:'SEU ESPAÇO FINANCEIRO',subtitle:'Seu dinheiro no exterior. Seu patrimônio no Brasil.',goal:'MEU OBJETIVO',remaining:'Falta',deadline:'DATA ESTIMADA',wealth:'Patrimônio considerado',balance:'Saldo atual',monthly:'Aporte mensal',overview:'VISÃO FINANCEIRA',where:'Onde estou agora',planning:'Meu planejamento',next:'PRÓXIMO PASSO',nextText:'Mantenha suas contas e movimentações atualizadas para que seu patrimônio reflita sua situação real.',horizon:'Horizonte',currentIncome:'Receita mensal informada'},en:{dashboard:'Dashboard',sub:'Overview of your financial journey and key indicators.',menuDashboard:'Dashboard',menuAccounts:'Accounts',menuIncome:'Income',menuGoals:'Goals',menuPlanning:'Planning',menuSetup:'Financial setup',logout:'Sign out',tag:'YOUR FINANCIAL SPACE',subtitle:'Your money abroad. Your wealth in Brazil.',goal:'MY GOAL',remaining:'Remaining',deadline:'ESTIMATED DATE',wealth:'Considered wealth',balance:'Current balance',monthly:'Monthly contribution',overview:'FINANCIAL VIEW',where:'Where I am now',planning:'My planning',next:'NEXT STEP',nextText:'Keep your accounts and transactions updated so your wealth reflects your real situation.',horizon:'Horizon',currentIncome:'Monthly income reported'}};
   function lang(){return localStorage.getItem('korbuild-language')||'pt-BR';}
-  function applyLanguage(){const en=lang()==='en-US',t=en?I.en:I.pt;document.documentElement.lang=en?'en':'pt-BR';const toggle=$('language-toggle');if(toggle){toggle.textContent=en?'🇧🇷':'🇺🇸';toggle.title=en?'Switch to Portuguese':'Switch to English';}document.querySelectorAll('[data-i18n]').forEach(e=>{if(t[e.dataset.i18n])e.textContent=t[e.dataset.i18n];});}
-  function setupHeader(user){
-    const name=workspace?.display_name||user.user_metadata?.full_name||user.email?.split('@')[0]||'André';
+  function setupHeader(user,name){
     setText('user-name',name);setText('user-email',user.email||'');setText('user-avatar',initials(name));setText('menu-full-name',name);setText('menu-full-email',user.email||'');setText('menu-avatar',initials(name));
-    $('user-menu-btn')?.addEventListener('click',e=>{e.stopPropagation();$('user-menu')?.classList.toggle('hidden');});
-    document.addEventListener('click',e=>{const wrap=document.querySelector('.user-menu-wrap');if(wrap&&!wrap.contains(e.target))$('user-menu')?.classList.add('hidden');});
+    $('user-menu-btn')?.addEventListener('click',e=>{e.stopPropagation();const m=$('user-menu');m?.classList.toggle('hidden');$('user-menu-btn')?.setAttribute('aria-expanded',m?.classList.contains('hidden')?'false':'true');});
+    document.addEventListener('click',e=>{const wrap=document.querySelector('.user-menu-wrap');if(wrap&&!wrap.contains(e.target)){$('user-menu')?.classList.add('hidden');$('user-menu-btn')?.setAttribute('aria-expanded','false');}});
     $('logout')?.addEventListener('click',async()=>{await KORbuildAuth.logout();window.location.replace('index.html');});
-    $('language-toggle')?.addEventListener('click',()=>{localStorage.setItem('korbuild-language',lang()==='pt-BR'?'en-US':'pt-BR');applyLanguage();});
+    $('language-toggle')?.addEventListener('click',()=>{localStorage.setItem('korbuild-language',lang()==='pt-BR'?'en-US':'pt-BR');window.location.reload();});
+  }
+  function wireQuickLaunch(){
+    const btn=$('quick-launch'),menu=$('quick-menu');
+    btn?.addEventListener('click',e=>{e.stopPropagation();menu?.classList.toggle('hidden');});
+    document.addEventListener('click',e=>{if(menu&&!menu.contains(e.target)&&e.target!==btn)menu.classList.add('hidden');});
   }
   async function load(){
     const session=await KORbuildAuth.session();if(!session?.user){window.location.replace('index.html');return;}
     const {data:w,error:we}=await db().from('user_workspaces').select('id,display_name,country,primary_currency,setup_completed').eq('user_id',session.user.id).maybeSingle();if(we)throw we;if(!w){window.location.replace('workspace.html');return;}if(!w.setup_completed){window.location.replace('workspace.html');return;}
-    workspace=w;setupHeader(session.user);applyLanguage();
-    const [{data:g,error:ge},{data:accounts,error:ae},{data:incomes,error:ie},{data:plans,error:pe}]=await Promise.all([
+    const [{data:g,error:ge},{data:accounts,error:ae},{data:incomes,error:ie},{data:plans,error:pe},{data:positions,error:pose}]=await Promise.all([
       db().from('goals').select('id,name,target_amount,target_years,start_date,initial_wealth,include_initial_wealth,created_at').eq('workspace_id',w.id).order('created_at',{ascending:false}).limit(1),
       db().from('accounts').select('opening_balance,currency').eq('workspace_id',w.id),
       db().from('incomes').select('amount,currency,frequency,description').eq('workspace_id',w.id),
-      db().from('plans').select('goal_id,projected_monthly_contribution,projected_monthly_rate,created_at').eq('workspace_id',w.id).order('created_at',{ascending:false}).limit(1)
-    ]);if(ge||ae||ie||pe)throw(ge||ae||ie||pe);
-    const goal=(g||[])[0]||null,plan=(plans||[])[0]||null,balance=(accounts||[]).reduce((s,a)=>s+Number(a.opening_balance||0),0),incomeRows=incomes||[],income=incomeRows.reduce((s,a)=>s+Number(a.amount||0),0),considered=goal?.include_initial_wealth?Number(goal.initial_wealth||0):balance,target=Number(goal?.target_amount||0),progress=target>0?Math.min(100,Math.max(0,(considered/target)*100)):0,remaining=Math.max(0,target-considered),d=deadline(goal?.start_date,goal?.target_years),en=lang()==='en-US';
-    setText('hello',`${en?'Hello':'Olá'}, ${w.display_name||'você'}`);setText('goalName',goal?.name||'Nenhum objetivo configurado');setText('goalTarget',brl(target));setText('wealth',brl(considered));setText('balance',brl(balance));setText('income',brl(income));setText('monthly',brl(plan?.projected_monthly_contribution||0));
-    const bar=$('progressBar');if(bar)bar.style.width=progress+'%';setText('progressLabel',progress.toLocaleString(en?'en-US':'pt-BR',{maximumFractionDigits:1})+'%');setText('remaining',brl(remaining));setText('deadline',d?d.toLocaleDateString(en?'en-US':'pt-BR'):'—');setText('goalNote',goal?.target_years?(en?'Based on your defined timeline':'Com base no prazo definido'):(en?'Define a goal to plan':'Defina um objetivo para planejar'));
-    setText('summaryWealth',brl(considered));setText('summaryBalance',brl(balance));setText('summaryRemaining',brl(remaining));setText('summaryGoal',goal?.name||'—');setText('summaryMonthly',brl(plan?.projected_monthly_contribution||0));setText('summaryHorizon',goal?.target_years?`${goal.target_years} ${goal.target_years===1?(en?'year':'ano'):(en?'years':'anos')}`:'—');setText('summaryDeadline',d?d.toLocaleDateString(en?'en-US':'pt-BR'):'—');
-    setText('accountCount',`${accounts?.length||0} ${(accounts?.length||0)===1?(en?'account':'conta'):(en?'accounts':'contas')}`);setText('incomeNote',`${incomeRows.length} ${incomeRows.length===1?(en?'income entry':'receita cadastrada'):(en?'income entries':'receitas cadastradas')}`);setText('planRate',plan?`${Number(plan.projected_monthly_rate||0).toLocaleString(en?'en-US':'pt-BR',{maximumFractionDigits:2})}% / ${en?'month':'mês'}`:'—');$('emptyState')?.classList.toggle('hidden',!!goal);
+      db().from('plans').select('goal_id,projected_monthly_contribution,projected_monthly_rate,created_at').eq('workspace_id',w.id).order('created_at',{ascending:false}).limit(1),
+      db().from('investment_positions').select('investment_id,position_value,cost_basis,result,return_pct,currency,valuation_status').eq('workspace_id',w.id)
+    ]);if(ge||ae||ie||pe||pose)throw(ge||ae||ie||pe||pose);
+    const goal=(g||[])[0]||null,plan=(plans||[])[0]||null,accountRows=accounts||[],incomeRows=incomes||[],positionRows=positions||[];
+    const balance=accountRows.reduce((s,a)=>s+Number(a.opening_balance||0),0);
+    const income=incomeRows.reduce((s,a)=>s+Number(a.amount||0),0);
+    const investmentValue=positionRows.reduce((s,a)=>s+Number(a.position_value||0),0);
+    const target=Number(goal?.target_amount||0);
+    const considered=goal?.include_initial_wealth?Number(goal.initial_wealth||0):balance+investmentValue;
+    const progress=target>0?Math.min(100,Math.max(0,(considered/target)*100)):0;
+    const remaining=Math.max(0,target-considered);
+    const d=deadline(goal?.start_date,goal?.target_years);
+    const en=lang()==='en-US';
+    const primary=w.primary_currency||'BRL';
+    const currencyLabel=primary.split(' — ')[0]||'BRL';
+    const money=v=>currencyLabel==='BRL'?brl(v):Number(v||0).toLocaleString(en?'en-US': 'pt-BR',{style:'currency',currency:currencyLabel,maximumFractionDigits:0});
+    setupHeader(session.user,w.display_name||session.user.email?.split('@')[0]||'André');
+    setText('hello',`${en?'Hello':'Olá'}, ${w.display_name||'você'}`);
+    setText('goalName',goal?.name||'Nenhum sonho configurado');setText('goalTarget',money(target));setText('wealth',money(considered));setText('balance',money(balance));setText('income',money(income));setText('investmentValue',money(investmentValue));
+    setText('investmentNote',positionRows.length?`${positionRows.length} ${positionRows.length===1?'investimento':'investimentos'}`:'Nenhum investimento ainda');
+    setText('wealthNote',goal?.include_initial_wealth?'Baseado no patrimônio inicial informado':'Contas + investimentos');
+    const bar=$('progressBar');if(bar)bar.style.width=progress+'%';setText('progressLabel',progress.toLocaleString(en?'en-US':'pt-BR',{maximumFractionDigits:1})+'%');setText('remaining',money(remaining));setText('deadline',d?d.toLocaleDateString(en?'en-US':'pt-BR',{month:'long',year:'numeric'}):'—');
+    setText('goalStatus',goal?(progress>=100?'Objetivo alcançado':(plan?'Você está no caminho':'Objetivo configurado')):'Configure seu sonho');
+    setText('accountCount',`${accountRows.length} ${accountRows.length===1?'conta':'contas'}`);setText('incomeNote',`${incomeRows.length} ${incomeRows.length===1?'receita cadastrada':'receitas cadastradas'}`);
+    setText('flowIncome',money(income));setText('flowInvestment',money(positionRows.reduce((s,a)=>s+Number(a.cost_basis||0),0)));setText('flowExpense','—');setText('surplus','—');
+    setText('surplusNote','As despesas e movimentações do período alimentarão esta métrica.');
+    setText('evolutionValue',money(considered));setText('evolutionNote','O histórico real será formado pelos fechamentos patrimoniais mensais.');
+    setText('insightTitle',goal?'Seu painel está pronto para acompanhar sua jornada.':'Comece definindo seu sonho.');
+    setText('insightText',goal?'Conforme você registra receitas, investimentos e despesas, o sistema poderá comparar sua evolução com o ritmo necessário para o objetivo.':'Defina seu objetivo financeiro para transformar seus números em uma jornada clara.');
+    setText('monthLabel',new Date().toLocaleDateString(en?'en-US':'pt-BR',{month:'long',year:'numeric'}));
+    wireQuickLaunch();
   }
   load().catch(error=>{console.error('Finance dashboard load failed:',error);showError('Não foi possível carregar os dados do seu espaço financeiro.');});
 })();
