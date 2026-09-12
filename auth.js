@@ -16,30 +16,35 @@ window.KORbuildAuth = (() => {
     if (!sidebars.length) return;
     const file = (window.location.pathname.split('/').pop() || 'index.html').toLowerCase();
     const activeMap = {
-      'dashboard.html':'dashboard','dashboard-movements.html':'dashboard',
+      'dashboard.html':'dashboard',
+      'planning.html':'planning',
+      'dashboard-movements.html':'management',
+      'transfers.html':'transfers','transfer-new.html':'transfers',
       'incomes.html':'incomes','income-new.html':'incomes','income-edit.html':'incomes',
-      'transfers.html':'transfers','transfer-new.html':'transfers','transfer-edit.html':'transfers',
-      'accounts.html':'accounts','account-new.html':'accounts','account-edit.html':'accounts',
-      'investments.html':'investments','investment-new.html':'investments','investment-edit.html':'investments','investment-detail.html':'investments','investment-launches.html':'investments','investment-launch-new.html':'investments',
       'expenses.html':'expenses','expense-new.html':'expenses','expense-edit.html':'expenses',
-      'planning.html':'planning','wealth-goal.html':'wealth',
+      'investments.html':'investments','investment-new.html':'investments','investment-edit.html':'investments','investment-detail.html':'investments','investment-launches.html':'investments','investment-launch-new.html':'investments',
+      'accounts.html':'accounts','account-new.html':'accounts','account-edit.html':'accounts',
+      'wealth-goal.html':'wealth',
       'cadastros.html':'config','settings.html':'config','investment-types.html':'config','investment-type-new.html':'config'
     };
     const activeKey = activeMap[file] || '';
-    const item = (key, href, icon, label) => `<a class="nav-item${activeKey === key ? ' active' : ''}" href="${href}"><span>${icon}</span><span>${label}</span></a>`;
+    const item = (key, href, icon, label) => `<a class="nav-item${activeKey === key ? ' active' : ''}" href="${href}"><span class="nav-icon" aria-hidden="true">${icon}</span><span>${label}</span></a>`;
     const navigation = [
       item('dashboard','dashboard.html','⌂','Dashboard'),
-      item('incomes','incomes.html','💵','Receitas'),
+      item('planning','planning.html','◉','Planejamento'),
+      item('management','dashboard-movements.html','▥','Visão Gerencial'),
+      item('transactions','dashboard-movements.html','↔','Transações'),
+      item('incomes','incomes.html','↓','Receitas'),
+      item('expenses','expenses.html','↑','Despesas'),
+      item('investments','investments.html','⌁','Investimentos'),
       item('transfers','transfers.html','↔','Transferências'),
-      item('accounts','accounts.html','🏦','Contas'),
-      item('investments','investments.html','📈','Investimentos'),
-      item('expenses','expenses.html','💸','Despesas'),
-      item('planning','planning.html','📅','Planejamento'),
-      item('wealth','wealth-goal.html','🎯','Patrimônio &amp; Sonho'),
-      item('config','cadastros.html','⚙','Configurações financeiras')
+      item('accounts','accounts.html','♜','Contas'),
+      item('wealth','wealth-goal.html','◔','Patrimônio &amp; Sonho'),
+      item('reports','dashboard-movements.html','▤','Relatórios'),
+      item('config','cadastros.html','⚙','Configurações')
     ].join('');
     sidebars.forEach(sidebar => {
-      sidebar.innerHTML = `<a class="side-brand" href="dashboard.html"><div class="mini-mark">K</div><div>KOR<span>build</span></div><span class="demo-badge">FINANCES</span></a><nav class="nav" aria-label="Navegação principal">${navigation}</nav><div class="side-bottom"></div>`;
+      sidebar.innerHTML = `<a class="side-brand" href="dashboard.html"><span class="brand-bars" aria-hidden="true"><i></i><i></i><i></i></span><span class="brand-text">KORbuild<br>Finances</span></a><nav class="nav" aria-label="Navegação principal">${navigation}</nav><div class="side-bottom"><div class="side-rule"></div><small>v1.0.0</small><span>KORbuild Finances</span></div>`;
     });
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', render, { once:true }); else render();
