@@ -1,1 +1,101 @@
-<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>KORbuild Finances · Dashboard</title><link rel="stylesheet" href="dashboard.css?v=5.7.0"><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com"><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="supabase-config.js"></script><script src="auth.js"></script></head><body><div class="app-shell"><aside class="sidebar" id="sidebar"></aside><main class="main-content"><header class="topbar"><div class="page-context"><strong>Dashboard</strong><small>Visão clara da sua jornada financeira.</small></div><div class="top-actions"><button id="language-toggle" class="language-toggle" type="button" aria-label="Idioma">🇺🇸</button><div class="user-menu-wrap"><button id="user-menu-btn" class="user-menu-btn" type="button" aria-expanded="false"><span class="user-copy"><strong id="user-name">André Nardacci</strong><small id="user-email"></small></span><span class="avatar" id="user-avatar">AN</span><span class="chevron">⌄</span></button><div id="user-menu" class="user-menu hidden"><div class="menu-header"><span class="avatar" id="menu-avatar">AN</span><div><b id="menu-full-name">André Nardacci</b><small id="menu-full-email"></small></div></div><div class="menu-divider"></div><a class="menu-item" href="cadastros.html"><span>⚙</span><span>Configurações</span></a><a class="menu-item" href="settings.html"><span>◉</span><span>Configuração financeira</span></a><div class="menu-divider"></div><button class="menu-item danger" id="logout" type="button"><span>↪</span><span>Sair</span></button></div></div></div></header><section class="intro"><div class="eyebrow">SEU ESPAÇO FINANCEIRO</div><h1 id="hello">Olá, André</h1><p>Seu dinheiro no exterior. Seu patrimônio no Brasil.</p></section><section class="wealth-evolution-hero"><div class="wealth-evolution-head"><div><div class="eyebrow">EVOLUÇÃO DO PATRIMÔNIO</div><h2>Meu patrimônio</h2><p>Como meu patrimônio está evoluindo ao longo do tempo.</p></div><select id="wealth-period" aria-label="Período"><option value="12">Últimos 12 meses</option><option value="24">Últimos 24 meses</option></select></div><div class="wealth-chart-wrap"><div id="wealth-chart" class="wealth-chart"><div class="wealth-chart-empty">O histórico real será formado pelos fechamentos patrimoniais mensais.</div></div></div><div class="wealth-evolution-footer"><div><span>Patrimônio atual</span><strong id="evolutionValue">R$ 0</strong></div><div><span>Variação</span><strong id="evolutionChange">—</strong></div><a href="wealth-goal.html">Ver histórico →</a></div></section><section class="metric-grid"><a class="metric metric-link metric-primary" href="wealth-goal.html"><div class="metric-icon">💎</div><small>Patrimônio</small><strong id="wealth">R$ 0</strong><p id="wealthNote">Contas + investimentos</p></a><a class="metric metric-link" href="accounts.html"><div class="metric-icon">🏦</div><small>Contas</small><strong id="balance">R$ 0</strong><p id="accountCount">0 contas</p></a><a class="metric metric-link" href="investments.html"><div class="metric-icon">📈</div><small>Investimentos</small><strong id="investmentValue">R$ 0</strong><p id="investmentNote">Ver investimentos</p></a></section><div class="section-head"><div><div class="section-label">VISÃO FINANCEIRA</div><h2>Como estou agora?</h2></div><a href="planning.html">Ver planejamento →</a></div><section class="content-grid"><article class="panel month-panel"><div class="panel-top"><div><div class="section-label">MEU MÊS</div><h3 id="monthLabel">Resumo atual</h3></div><span class="period-chip">Agora</span></div><div class="flow-list"><div class="flow-row" data-drilldown="income" role="link" tabindex="0"><span><i class="dot income-dot"></i>Recebi</span><strong id="flowIncome">—</strong></div><div class="flow-row" data-drilldown="transfer" role="link" tabindex="0"><span><i class="dot transfer-dot"></i>Transferi</span><strong id="flowTransfer">—</strong></div><div class="flow-row" data-drilldown="investment" role="link" tabindex="0"><span><i class="dot investment-dot"></i>Investi</span><strong id="flowInvestment">—</strong></div><div class="flow-row" data-drilldown="expense" role="link" tabindex="0"><span><i class="dot expense-dot"></i>Gastei</span><strong id="flowExpense">—</strong></div></div><div class="surplus"><span>Disponível</span><strong id="surplus">—</strong><small id="surplusNote">Receitas − investimentos − despesas realizadas no mês.</small></div></article><article class="panel evolution-panel"><div class="panel-top"><div><div class="section-label">PATRIMÔNIO</div><h3>Posição atual</h3></div><a class="panel-link" href="wealth-goal.html">Ver detalhes</a></div><div class="evolution-value" id="evolutionValueMini">R$ 0</div><p id="evolutionNote">Contas + investimentos na moeda principal.</p><div class="mini-chart"><span style="height:22%"></span><span style="height:35%"></span><span style="height:31%"></span><span style="height:49%"></span><span style="height:58%"></span><span style="height:71%"></span><span style="height:66%"></span><span style="height:82%"></span></div></article></section><section class="dashboard-lower-grid"><article class="panel expense-chart-panel"><div class="panel-top"><div><div class="section-label">DESPESAS</div><h3>Onde estou gastando?</h3></div><a class="panel-link" href="expenses.html">Ver despesas</a></div><div id="expense-chart" class="expense-chart"></div><div class="expense-chart-total"><span>Total no mês</span><strong id="expenseChartTotal">R$ 0</strong></div></article><section class="panel period-summary-panel"><div class="panel-top"><div><div class="section-label">RESUMO</div><h3>Resumo do período</h3></div><a class="panel-link" href="dashboard-movements.html?type=all">Ver detalhes</a></div><div class="period-summary-list"><a class="flow-row" href="dashboard-movements.html?type=income"><span>Entradas</span><strong id="summaryIncome">R$ 0</strong></a><a class="flow-row" href="dashboard-movements.html?type=expense"><span>Saídas econômicas</span><strong id="summaryEconomicOut">R$ 0</strong></a><a class="flow-row" href="dashboard-movements.html?type=transfer"><span>Transferências</span><strong id="summaryTransfer">R$ 0</strong></a><div class="flow-row summary-result"><span>Resultado</span><strong id="summaryResult">R$ 0</strong></div></div></section></section><section class="insight" id="insight"><div class="insight-icon">✦</div><div><div class="section-label">INTELIGÊNCIA</div><h3 id="insightTitle">Seu painel está pronto para acompanhar sua jornada.</h3><p id="insightText">Conforme você registra receitas, investimentos e despesas, o sistema poderá transformar esses dados em análises úteis.</p></div></section><div id="status" class="status hidden" role="alert"></div></main><div class="app-version">KORbuild Finances V2.7.0 · Development environment</div><button class="quick-launch" id="quick-launch" type="button" aria-label="Lançar"><span>＋</span><b>Lançar</b></button><div class="quick-menu hidden" id="quick-menu"><div class="quick-title">O que aconteceu?</div><a href="incomes.html">💵 Recebi</a><a href="transfers.html">↔ Transferi</a><a href="investments.html">📈 Investi</a><a href="expenses.html">💸 Gastei</a></div><button class="ai-fab" type="button" aria-label="KORbuild AI"><span>✦ AI</span></button><nav class="mobile-nav" aria-label="Navegação móvel"><a class="mobile-nav-item active" href="dashboard.html"><span>⌂</span><small>Início</small></a><a class="mobile-nav-item" href="wealth-goal.html"><span>🎯</span><small>Patrimônio</small></a><button class="mobile-nav-action" id="mobile-launch" type="button" aria-label="Lançar"><span>＋</span><small>Lançar</small></button><a class="mobile-nav-item" href="settings.html"><span>👤</span><small>Perfil</small></a></nav></div><script src="dashboard.js?v=5.7.0"></script></body></html>
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+  <title>KORbuild Finances · Dashboard</title>
+  <link rel="stylesheet" href="dashboard.css?v=6.0.0">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="supabase-config.js"></script><script src="auth.js"></script>
+</head>
+<body>
+<div class="app-shell">
+  <aside class="sidebar" id="sidebar"></aside>
+  <main class="main-content">
+    <header class="topbar">
+      <div class="page-context"><strong>Dashboard</strong><small>Visão clara da sua jornada financeira.</small></div>
+      <div class="top-actions">
+        <button id="language-toggle" class="language-toggle" type="button" aria-label="Idioma">🇺🇸</button>
+        <div class="user-menu-wrap">
+          <button id="user-menu-btn" class="user-menu-btn" type="button" aria-expanded="false">
+            <span class="user-copy"><strong id="user-name">André Nardacci</strong><small id="user-email"></small></span>
+            <span class="avatar" id="user-avatar">AN</span><span class="chevron">⌄</span>
+          </button>
+          <div id="user-menu" class="user-menu hidden">
+            <div class="menu-header"><span class="avatar" id="menu-avatar">AN</span><div><b id="menu-full-name">André Nardacci</b><small id="menu-full-email"></small></div></div>
+            <div class="menu-divider"></div>
+            <a class="menu-item" href="cadastros.html"><span>⚙</span><span>Configurações</span></a>
+            <a class="menu-item" href="settings.html"><span>◉</span><span>Configuração financeira</span></a>
+            <div class="menu-divider"></div><button class="menu-item danger" id="logout" type="button"><span>↪</span><span>Sair</span></button>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <section class="intro">
+      <div class="eyebrow">SEU ESPAÇO FINANCEIRO</div>
+      <h1 id="hello">Olá, André Nardacci</h1>
+      <p>Seu dinheiro no exterior. Seu patrimônio no Brasil.</p>
+    </section>
+
+    <section class="metric-grid dashboard-metrics">
+      <article class="metric metric-income"><div class="metric-icon">↓</div><div><small>Receitas</small><strong id="metric-income">R$ 0</strong><span id="metric-income-delta" class="delta">—</span><p>Neste mês <b>vs. mês anterior</b></p></div></article>
+      <article class="metric metric-expense"><div class="metric-icon">↑</div><div><small>Despesas</small><strong id="metric-expense">R$ 0</strong><span id="metric-expense-delta" class="delta">—</span><p>Neste mês <b>vs. mês anterior</b></p></div></article>
+      <article class="metric metric-investment"><div class="metric-icon">▥</div><div><small>Investimentos</small><strong id="metric-investment">R$ 0</strong><span id="metric-investment-delta" class="delta">—</span><p>Neste mês <b>vs. mês anterior</b></p></div></article>
+      <article class="metric metric-transfer"><div class="metric-icon">↔</div><div><small>Transferências</small><strong id="metric-transfer">R$ 0</strong><span id="metric-transfer-delta" class="delta">—</span><p>Neste mês <b>vs. mês anterior</b></p></div></article>
+    </section>
+
+    <section class="dashboard-main-grid">
+      <article class="panel wealth-panel">
+        <div class="panel-heading">
+          <div><div class="section-label">EVOLUÇÃO DO PATRIMÔNIO</div><h2>Meu patrimônio</h2><p>Como meu patrimônio está evoluindo ao longo do tempo.</p></div>
+          <select id="wealth-period" aria-label="Período"><option value="12">Últimos 12 meses</option><option value="24">Últimos 24 meses</option></select>
+        </div>
+        <div id="wealth-chart" class="wealth-chart"></div>
+        <div class="wealth-stats">
+          <div><span>Patrimônio atual</span><strong id="evolutionValue">R$ 0</strong></div>
+          <div><span>Variação (12 meses)</span><strong id="evolutionChange">—</strong><small id="evolutionChangeValue"></small></div>
+          <div><span>Maior valor</span><strong id="wealthMax">—</strong><small id="wealthMaxPeriod"></small></div>
+          <div><span>Menor valor</span><strong id="wealthMin">—</strong><small id="wealthMinPeriod"></small></div>
+        </div>
+      </article>
+
+      <article class="panel month-chart-panel">
+        <div class="panel-heading compact"><div><div class="section-label">MEU MÊS</div><h2>Meu mês</h2><p id="month-subtitle">Resumo das movimentações.</p></div><span class="calendar-icon">▣</span></div>
+        <div class="month-visual">
+          <div class="donut" id="month-donut"><div><strong id="month-total">R$ 0</strong><span>Total</span></div></div>
+          <div class="legend" id="month-legend"></div>
+        </div>
+        <div class="month-insight"><span>▥</span><p id="month-insight">Analisando seu mês...</p></div>
+      </article>
+    </section>
+
+    <section class="dashboard-bottom-grid">
+      <article class="panel expense-panel">
+        <div class="panel-heading compact"><div><div class="section-label">DESPESAS</div><h2>Onde estou gastando?</h2><p>Principais categorias neste mês.</p></div><a class="panel-link" href="expenses.html">Ver detalhes&nbsp; →</a></div>
+        <div class="expense-visual">
+          <div class="expense-donut" id="expense-donut"><div><strong id="expense-total-center">R$ 0</strong><span>Total</span></div></div>
+          <div class="expense-legend" id="expense-legend"></div>
+        </div>
+      </article>
+      <article class="panel goal-panel">
+        <div class="panel-heading compact"><div><div class="section-label">OBJETIVO RÁPIDO</div><h2>Objetivo rápido</h2></div><a class="panel-link" href="planning.html">Ir para Planejamento&nbsp; →</a></div>
+        <div class="goal-card">
+          <div class="goal-card-head"><div><strong id="goal-name">—</strong><b id="goal-remaining">R$ 0</b><span id="goal-caption">para a sua meta</span></div><span id="goal-status" class="goal-status">—</span></div>
+          <div class="goal-progress"><span id="goal-progress-bar"></span></div><div class="goal-progress-label"><span id="goal-progress-text">0%</span></div>
+          <div class="goal-deadline">▣ <span id="goal-deadline">Defina seu prazo no Planejamento</span></div>
+        </div>
+      </article>
+    </section>
+
+    <div id="status" class="status hidden" role="alert"></div>
+  </main>
+  <div class="app-version">KORbuild Finances V3.0.0 · Development environment</div>
+  <button class="quick-launch" id="quick-launch" type="button" aria-label="Lançar"><span>＋</span><b>Lançar</b></button>
+  <div class="quick-menu hidden" id="quick-menu"><div class="quick-title">O que aconteceu?</div><a href="incomes.html">💵 Recebi</a><a href="transfers.html">↔ Transferi</a><a href="investments.html">📈 Investi</a><a href="expenses.html">💸 Gastei</a></div>
+  <button class="ai-fab" type="button" aria-label="KORbuild AI"><span>✦ AI</span></button>
+  <nav class="mobile-nav" aria-label="Navegação móvel"><a class="mobile-nav-item active" href="dashboard.html"><span>⌂</span><small>Início</small></a><a class="mobile-nav-item" href="planning.html"><span>◉</span><small>Planejamento</small></a><button class="mobile-nav-action" id="mobile-launch" type="button" aria-label="Lançar"><span>＋</span><small>Lançar</small></button><a class="mobile-nav-item" href="settings.html"><span>👤</span><small>Perfil</small></a></nav>
+</div>
+<script src="dashboard.js?v=6.0.0"></script>
+</body></html>
