@@ -10,10 +10,12 @@ module.exports = defineConfig({
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 1 : 0,
   reporter: 'html',
+  globalSetup: require.resolve('./tests/global-setup'),
   use: {
     baseURL: BASE_URL,
     trace: 'on-first-retry',
     screenshot: 'only-on-failure',
+    storageState: 'tests/.auth/user.json',
   },
   projects: [
     { name: 'chromium', use: { ...devices['Desktop Chrome'] } },

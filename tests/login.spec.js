@@ -2,6 +2,8 @@ const { test, expect } = require('@playwright/test');
 
 // index.html contem o formulario de login real (login.html apenas redireciona para ele).
 test.describe('Login', () => {
+  test.use({ storageState: { cookies: [], origins: [] } });
+
   test.beforeEach(async ({ page }) => {
     await page.goto('/index.html');
   });
