@@ -1,101 +1,51 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
-  <title>KORbuild Finances · Dashboard</title>
-  <link rel="stylesheet" href="dashboard.css?v=6.0.0">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap">
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="supabase-config.js"></script><script src="auth.js"></script>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>KORbuild Finances · Dashboard</title>
+<link rel="stylesheet" href="dashboard.css?v=6.0.0">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="supabase-config.js"></script><script src="auth.js"></script>
+<style>
+/* Approved Dashboard visual model */
+:root{--db-ink:#0e203a;--db-muted:#5d708d;--db-line:#dfe6ef;--db-bg:#f5f8fc;--db-green:#15935d;--db-red:#df3838;--db-blue:#2474e8;--db-purple:#5a35d6}
+body{background:var(--db-bg);color:var(--db-ink)}.main-content{padding:0 18px 70px;max-width:1600px}.topbar{margin:0 -18px;padding:0 25px;height:60px}.intro{padding:18px 10px 14px}.intro h1{font-size:28px;margin:4px 0 5px}.intro p{font-size:11px}
+.dashboard-metrics{display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:13px!important;margin:0 0 15px!important}.dashboard-metrics .metric{min-height:108px;display:flex;align-items:center;gap:14px;padding:15px;border-radius:14px}.dashboard-metrics .metric-icon{width:47px;height:47px;min-width:47px;border-radius:13px;margin:0;font-size:27px}.metric-income .metric-icon{background:#e4f7ef;color:#12915a}.metric-expense .metric-icon{background:#ffebeb;color:#df3838}.metric-investment .metric-icon{background:#eaf3ff;color:#236fdf}.metric-transfer .metric-icon{background:#f0ebff;color:#5834d3}.dashboard-metrics .metric small{font-size:10px;color:#172844;font-weight:700}.dashboard-metrics .metric strong{display:inline-block;font-size:18px;margin-top:7px}.dashboard-metrics .metric p{margin:5px 0 0;font-size:9px;color:var(--db-muted)}.dashboard-metrics .metric p b{font-weight:500;margin-left:4px}.dashboard-metrics .delta{display:inline-block;margin-left:8px;padding:5px 8px;border-radius:999px;background:#e8f8ef;color:#128b58;font-size:9px;font-weight:700}.dashboard-metrics .metric-expense .delta{background:#fff0f0;color:#db3b3b}
+.dashboard-main-grid,.dashboard-bottom-grid{display:grid;grid-template-columns:1.55fr .85fr;gap:14px}.dashboard-bottom-grid{margin-top:14px}.panel{border-radius:15px;padding:17px;box-shadow:0 8px 24px rgba(29,50,82,.055)}.panel-heading{display:flex;justify-content:space-between;align-items:flex-start;gap:15px}.panel-heading h2{margin:5px 0 3px;font-size:18px;letter-spacing:-.02em}.panel-heading p{margin:0;color:var(--db-muted);font-size:10px}.panel-heading.compact h2{font-size:16px}.panel-heading select{height:36px;border:1px solid var(--db-line);border-radius:20px;background:#fff;padding:0 12px;color:#263a56;font:inherit;font-size:10px}.section-label,.eyebrow{font-size:9px;font-weight:800;letter-spacing:.14em;color:#60718b}
+.wealth-panel{min-height:454px}.wealth-chart{height:270px;margin-top:10px}.wealth-chart .chart-grid{stroke:#e1e7ee;stroke-width:1;stroke-dasharray:3 4}.wealth-chart .wealth-line{stroke:var(--db-green);stroke-width:3}.wealth-chart .wealth-area{fill:var(--db-green);opacity:.08}.wealth-chart circle{fill:var(--db-green)}.wealth-stats{display:grid;grid-template-columns:repeat(4,1fr);background:#f6f9fd;border-radius:12px;padding:14px 15px;gap:12px}.wealth-stats span{font-size:9px;color:var(--db-muted);display:block;margin-bottom:6px}.wealth-stats strong{font-size:15px;display:block}.wealth-stats small{font-size:9px;color:var(--db-muted);display:block;margin-top:4px}.wealth-chart-empty{border:1px dashed #dce3eb;background:#fafcfd;border-radius:11px}.wealth-chart-empty strong{font-size:26px;color:var(--db-ink)}
+.month-chart-panel{min-height:454px}.month-visual{display:grid;grid-template-columns:190px 1fr;align-items:center;gap:7px;min-height:285px}.donut{width:190px;height:190px;border-radius:50%;position:relative;display:grid;place-items:center}.donut:after{content:"";position:absolute;width:104px;height:104px;background:#fff;border-radius:50%}.donut>div{position:relative;z-index:2;text-align:center}.donut strong{display:block;font-size:16px}.donut span{display:block;color:var(--db-muted);font-size:10px;margin-top:4px}.legend{display:grid;gap:15px}.legend-row{display:grid;grid-template-columns:10px 1fr auto;column-gap:8px;align-items:start;font-size:10px}.legend-dot{width:9px;height:9px;border-radius:50%;margin-top:3px}.legend-row b{display:block;font-size:11px;font-weight:500}.legend-row strong{font-size:10px;color:#172844;font-weight:500}.legend-row em{font-style:normal;color:#51627c;font-size:9px;grid-column:2/4;margin-top:3px}.month-insight{margin-top:auto;background:#f2f8fd;border-radius:11px;padding:13px;display:flex;gap:10px;align-items:flex-start}.month-insight span{font-size:18px;color:#127d63}.month-insight p{margin:0;font-size:9px;line-height:1.55;color:#53657d}
+.expense-panel{min-height:285px}.expense-visual{display:grid;grid-template-columns:190px 1fr;align-items:center;gap:20px;min-height:225px}.expense-donut{width:190px;height:190px;border-radius:50%;position:relative;display:grid;place-items:center}.expense-donut:after{content:"";position:absolute;width:104px;height:104px;background:#fff;border-radius:50%}.expense-donut>div{position:relative;z-index:2;text-align:center}.expense-donut strong{display:block;font-size:16px}.expense-donut span{display:block;color:var(--db-muted);font-size:10px;margin-top:4px}.expense-legend{display:grid;gap:9px}.expense-row{display:grid;grid-template-columns:10px 1fr auto auto;gap:9px;align-items:center;font-size:10px}.expense-row .legend-dot{margin:0}.expense-row span:nth-child(2){color:#334966}.expense-row strong{font-size:10px;font-weight:500}.expense-row em{font-style:normal;color:#60718b;width:42px;text-align:right}.empty-note{font-size:10px;color:var(--db-muted)}
+.goal-panel{min-height:285px}.goal-card{margin-top:8px;background:linear-gradient(135deg,#edf9f2,#e9f7f0);border-radius:14px;padding:18px;min-height:224px}.goal-card-head{display:flex;justify-content:space-between;gap:10px}.goal-card-head strong{display:block;font-size:17px}.goal-card-head b{display:block;font-size:23px;color:#006e4d;margin-top:7px;letter-spacing:-.03em}.goal-card-head span{display:block;color:#405c70;font-size:10px;margin-top:5px}.goal-status{background:#d8f2e5!important;color:#16814f!important;border-radius:999px;padding:8px 11px!important;height:max-content!important;font-weight:700}.goal-progress{height:7px;background:#d5e5df;border-radius:99px;overflow:hidden;margin-top:26px}.goal-progress span{display:block;height:100%;background:#14935f;border-radius:inherit;width:0}.goal-progress-label{text-align:right;margin-top:4px;font-size:9px;font-weight:700}.goal-deadline{margin-top:20px;font-size:10px;color:#314c62}.panel-link{font-size:9px;color:#0f68d9;font-weight:700;white-space:nowrap}
+@media(max-width:1100px){.dashboard-main-grid,.dashboard-bottom-grid{grid-template-columns:1fr}.dashboard-metrics{grid-template-columns:repeat(2,1fr)!important}}
+@media(max-width:700px){.sidebar{display:none}.main-content{padding:0 12px 78px}.topbar{margin:0 -12px;padding:0 14px;height:58px}.page-context small,.user-copy{display:none}.intro{padding:17px 4px 12px}.intro h1{font-size:24px}.dashboard-metrics{grid-template-columns:1fr 1fr!important;gap:9px!important}.dashboard-metrics .metric{min-height:96px;padding:12px;gap:9px}.dashboard-metrics .metric-icon{width:38px;min-width:38px;height:38px;font-size:22px}.dashboard-metrics .metric strong{font-size:15px}.dashboard-metrics .metric .delta{margin-left:2px;font-size:8px;padding:4px 5px}.dashboard-metrics .metric p{font-size:8px}.dashboard-main-grid,.dashboard-bottom-grid{gap:10px}.panel{padding:14px}.wealth-panel,.month-chart-panel{min-height:auto}.wealth-chart{height:220px}.wealth-stats{grid-template-columns:1fr 1fr}.month-visual,.expense-visual{grid-template-columns:1fr;justify-items:center}.legend,.expense-legend{width:100%}.donut,.expense-donut{width:175px;height:175px}.donut:after,.expense-donut:after{width:96px;height:96px}.goal-card{min-height:210px}.quick-launch{right:14px;bottom:67px;height:48px}.quick-menu{right:14px;bottom:122px}.ai-fab{right:14px;bottom:125px}.mobile-nav{position:fixed;display:grid;grid-template-columns:1fr 1fr 1.1fr 1fr;left:0;right:0;bottom:0;height:60px;background:rgba(255,255,255,.97);border-top:1px solid var(--db-line);z-index:1000;padding:5px 10px 4px}.mobile-nav-item,.mobile-nav-action{height:51px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;border:0;background:transparent;color:#68758a;font:inherit;text-decoration:none}.mobile-nav-item span{font-size:16px}.mobile-nav-item small,.mobile-nav-action small{font-size:8px;font-weight:700}.mobile-nav-item.active{color:#5c50e6}.mobile-nav-action{color:#fff;transform:translateY(-8px)}.mobile-nav-action span{width:46px;height:46px;border-radius:50%;display:grid;place-items:center;background:linear-gradient(145deg,#6d63ff,#a855f7);font-size:23px;box-shadow:0 8px 20px rgba(99,91,255,.3)}.mobile-nav-action small{color:#5c50e6}.app-version{right:12px;bottom:63px;font-size:7px}}
+</style>
 </head>
 <body>
 <div class="app-shell">
-  <aside class="sidebar" id="sidebar"></aside>
-  <main class="main-content">
-    <header class="topbar">
-      <div class="page-context"><strong>Dashboard</strong><small>Visão clara da sua jornada financeira.</small></div>
-      <div class="top-actions">
-        <button id="language-toggle" class="language-toggle" type="button" aria-label="Idioma">🇺🇸</button>
-        <div class="user-menu-wrap">
-          <button id="user-menu-btn" class="user-menu-btn" type="button" aria-expanded="false">
-            <span class="user-copy"><strong id="user-name">André Nardacci</strong><small id="user-email"></small></span>
-            <span class="avatar" id="user-avatar">AN</span><span class="chevron">⌄</span>
-          </button>
-          <div id="user-menu" class="user-menu hidden">
-            <div class="menu-header"><span class="avatar" id="menu-avatar">AN</span><div><b id="menu-full-name">André Nardacci</b><small id="menu-full-email"></small></div></div>
-            <div class="menu-divider"></div>
-            <a class="menu-item" href="cadastros.html"><span>⚙</span><span>Configurações</span></a>
-            <a class="menu-item" href="settings.html"><span>◉</span><span>Configuração financeira</span></a>
-            <div class="menu-divider"></div><button class="menu-item danger" id="logout" type="button"><span>↪</span><span>Sair</span></button>
-          </div>
-        </div>
-      </div>
-    </header>
-
-    <section class="intro">
-      <div class="eyebrow">SEU ESPAÇO FINANCEIRO</div>
-      <h1 id="hello">Olá, André Nardacci</h1>
-      <p>Seu dinheiro no exterior. Seu patrimônio no Brasil.</p>
-    </section>
-
-    <section class="metric-grid dashboard-metrics">
-      <article class="metric metric-income"><div class="metric-icon">↓</div><div><small>Receitas</small><strong id="metric-income">R$ 0</strong><span id="metric-income-delta" class="delta">—</span><p>Neste mês <b>vs. mês anterior</b></p></div></article>
-      <article class="metric metric-expense"><div class="metric-icon">↑</div><div><small>Despesas</small><strong id="metric-expense">R$ 0</strong><span id="metric-expense-delta" class="delta">—</span><p>Neste mês <b>vs. mês anterior</b></p></div></article>
-      <article class="metric metric-investment"><div class="metric-icon">▥</div><div><small>Investimentos</small><strong id="metric-investment">R$ 0</strong><span id="metric-investment-delta" class="delta">—</span><p>Neste mês <b>vs. mês anterior</b></p></div></article>
-      <article class="metric metric-transfer"><div class="metric-icon">↔</div><div><small>Transferências</small><strong id="metric-transfer">R$ 0</strong><span id="metric-transfer-delta" class="delta">—</span><p>Neste mês <b>vs. mês anterior</b></p></div></article>
-    </section>
-
-    <section class="dashboard-main-grid">
-      <article class="panel wealth-panel">
-        <div class="panel-heading">
-          <div><div class="section-label">EVOLUÇÃO DO PATRIMÔNIO</div><h2>Meu patrimônio</h2><p>Como meu patrimônio está evoluindo ao longo do tempo.</p></div>
-          <select id="wealth-period" aria-label="Período"><option value="12">Últimos 12 meses</option><option value="24">Últimos 24 meses</option></select>
-        </div>
-        <div id="wealth-chart" class="wealth-chart"></div>
-        <div class="wealth-stats">
-          <div><span>Patrimônio atual</span><strong id="evolutionValue">R$ 0</strong></div>
-          <div><span>Variação (12 meses)</span><strong id="evolutionChange">—</strong><small id="evolutionChangeValue"></small></div>
-          <div><span>Maior valor</span><strong id="wealthMax">—</strong><small id="wealthMaxPeriod"></small></div>
-          <div><span>Menor valor</span><strong id="wealthMin">—</strong><small id="wealthMinPeriod"></small></div>
-        </div>
-      </article>
-
-      <article class="panel month-chart-panel">
-        <div class="panel-heading compact"><div><div class="section-label">MEU MÊS</div><h2>Meu mês</h2><p id="month-subtitle">Resumo das movimentações.</p></div><span class="calendar-icon">▣</span></div>
-        <div class="month-visual">
-          <div class="donut" id="month-donut"><div><strong id="month-total">R$ 0</strong><span>Total</span></div></div>
-          <div class="legend" id="month-legend"></div>
-        </div>
-        <div class="month-insight"><span>▥</span><p id="month-insight">Analisando seu mês...</p></div>
-      </article>
-    </section>
-
-    <section class="dashboard-bottom-grid">
-      <article class="panel expense-panel">
-        <div class="panel-heading compact"><div><div class="section-label">DESPESAS</div><h2>Onde estou gastando?</h2><p>Principais categorias neste mês.</p></div><a class="panel-link" href="expenses.html">Ver detalhes&nbsp; →</a></div>
-        <div class="expense-visual">
-          <div class="expense-donut" id="expense-donut"><div><strong id="expense-total-center">R$ 0</strong><span>Total</span></div></div>
-          <div class="expense-legend" id="expense-legend"></div>
-        </div>
-      </article>
-      <article class="panel goal-panel">
-        <div class="panel-heading compact"><div><div class="section-label">OBJETIVO RÁPIDO</div><h2>Objetivo rápido</h2></div><a class="panel-link" href="planning.html">Ir para Planejamento&nbsp; →</a></div>
-        <div class="goal-card">
-          <div class="goal-card-head"><div><strong id="goal-name">—</strong><b id="goal-remaining">R$ 0</b><span id="goal-caption">para a sua meta</span></div><span id="goal-status" class="goal-status">—</span></div>
-          <div class="goal-progress"><span id="goal-progress-bar"></span></div><div class="goal-progress-label"><span id="goal-progress-text">0%</span></div>
-          <div class="goal-deadline">▣ <span id="goal-deadline">Defina seu prazo no Planejamento</span></div>
-        </div>
-      </article>
-    </section>
-
-    <div id="status" class="status hidden" role="alert"></div>
-  </main>
-  <div class="app-version">KORbuild Finances V3.0.0 · Development environment</div>
-  <button class="quick-launch" id="quick-launch" type="button" aria-label="Lançar"><span>＋</span><b>Lançar</b></button>
-  <div class="quick-menu hidden" id="quick-menu"><div class="quick-title">O que aconteceu?</div><a href="incomes.html">💵 Recebi</a><a href="transfers.html">↔ Transferi</a><a href="investments.html">📈 Investi</a><a href="expenses.html">💸 Gastei</a></div>
-  <button class="ai-fab" type="button" aria-label="KORbuild AI"><span>✦ AI</span></button>
-  <nav class="mobile-nav" aria-label="Navegação móvel"><a class="mobile-nav-item active" href="dashboard.html"><span>⌂</span><small>Início</small></a><a class="mobile-nav-item" href="planning.html"><span>◉</span><small>Planejamento</small></a><button class="mobile-nav-action" id="mobile-launch" type="button" aria-label="Lançar"><span>＋</span><small>Lançar</small></button><a class="mobile-nav-item" href="settings.html"><span>👤</span><small>Perfil</small></a></nav>
+<aside class="sidebar" id="sidebar"></aside>
+<main class="main-content">
+<header class="topbar"><div class="page-context"><strong>Dashboard</strong><small>Visão clara da sua jornada financeira.</small></div><div class="top-actions"><button id="language-toggle" class="language-toggle" type="button" aria-label="Idioma">🇺🇸</button><div class="user-menu-wrap"><button id="user-menu-btn" class="user-menu-btn" type="button" aria-expanded="false"><span class="user-copy"><strong id="user-name">André Nardacci</strong><small id="user-email"></small></span><span class="avatar" id="user-avatar">AN</span><span class="chevron">⌄</span></button><div id="user-menu" class="user-menu hidden"><div class="menu-header"><span class="avatar" id="menu-avatar">AN</span><div><b id="menu-full-name">André Nardacci</b><small id="menu-full-email"></small></div></div><div class="menu-divider"></div><a class="menu-item" href="cadastros.html"><span>⚙</span><span>Configurações</span></a><a class="menu-item" href="settings.html"><span>◉</span><span>Configuração financeira</span></a><div class="menu-divider"></div><button class="menu-item danger" id="logout" type="button"><span>↪</span><span>Sair</span></button></div></div></div></header>
+<section class="intro"><div class="eyebrow">SEU ESPAÇO FINANCEIRO</div><h1 id="hello">Olá, André Nardacci</h1><p>Seu dinheiro no exterior. Seu patrimônio no Brasil.</p></section>
+<section class="dashboard-metrics">
+<article class="metric metric-income"><div class="metric-icon">↓</div><div><small>Receitas</small><strong id="metric-income">R$ 0</strong><span id="metric-income-delta" class="delta">—</span><p>Neste mês <b>vs. mês anterior</b></p></div></article>
+<article class="metric metric-expense"><div class="metric-icon">↑</div><div><small>Despesas</small><strong id="metric-expense">R$ 0</strong><span id="metric-expense-delta" class="delta">—</span><p>Neste mês <b>vs. mês anterior</b></p></div></article>
+<article class="metric metric-investment"><div class="metric-icon">▥</div><div><small>Investimentos</small><strong id="metric-investment">R$ 0</strong><span id="metric-investment-delta" class="delta">—</span><p>Neste mês <b>vs. mês anterior</b></p></div></article>
+<article class="metric metric-transfer"><div class="metric-icon">↔</div><div><small>Transferências</small><strong id="metric-transfer">R$ 0</strong><span id="metric-transfer-delta" class="delta">—</span><p>Neste mês <b>vs. mês anterior</b></p></div></article>
+</section>
+<section class="dashboard-main-grid">
+<article class="panel wealth-panel"><div class="panel-heading"><div><div class="section-label">EVOLUÇÃO DO PATRIMÔNIO</div><h2>Meu patrimônio</h2><p>Como meu patrimônio está evoluindo ao longo do tempo.</p></div><select id="wealth-period" aria-label="Período"><option value="12">Últimos 12 meses</option><option value="24">Últimos 24 meses</option></select></div><div id="wealth-chart" class="wealth-chart"></div><div class="wealth-stats"><div><span>Patrimônio atual</span><strong id="evolutionValue">R$ 0</strong></div><div><span>Variação (12 meses)</span><strong id="evolutionChange">—</strong><small id="evolutionChangeValue"></small></div><div><span>Maior valor</span><strong id="wealthMax">—</strong><small id="wealthMaxPeriod"></small></div><div><span>Menor valor</span><strong id="wealthMin">—</strong><small id="wealthMinPeriod"></small></div></div></article>
+<article class="panel month-chart-panel"><div class="panel-heading compact"><div><div class="section-label">MEU MÊS</div><h2>Meu mês</h2><p id="month-subtitle">Resumo das movimentações.</p></div><span class="calendar-icon">▣</span></div><div class="month-visual"><div class="donut" id="month-donut"><div><strong id="month-total">R$ 0</strong><span>Total</span></div></div><div class="legend" id="month-legend"></div></div><div class="month-insight"><span>▥</span><p id="month-insight">Analisando seu mês...</p></div></article>
+</section>
+<section class="dashboard-bottom-grid">
+<article class="panel expense-panel"><div class="panel-heading compact"><div><div class="section-label">DESPESAS</div><h2>Onde estou gastando?</h2><p>Principais categorias neste mês.</p></div><a class="panel-link" href="expenses.html">Ver detalhes&nbsp; →</a></div><div class="expense-visual"><div class="expense-donut" id="expense-donut"><div><strong id="expense-total-center">R$ 0</strong><span>Total</span></div></div><div class="expense-legend" id="expense-legend"></div></div></article>
+<article class="panel goal-panel"><div class="panel-heading compact"><div><div class="section-label">OBJETIVO RÁPIDO</div><h2>Objetivo rápido</h2></div><a class="panel-link" href="planning.html">Ir para Planejamento&nbsp; →</a></div><div class="goal-card"><div class="goal-card-head"><div><strong id="goal-name">—</strong><b id="goal-remaining">R$ 0</b><span id="goal-caption">para a sua meta</span></div><span id="goal-status" class="goal-status">—</span></div><div class="goal-progress"><span id="goal-progress-bar"></span></div><div class="goal-progress-label"><span id="goal-progress-text">0%</span></div><div class="goal-deadline">▣ <span id="goal-deadline">Defina seu prazo no Planejamento</span></div></div></article>
+</section>
+<div id="status" class="status hidden" role="alert"></div>
+</main>
+<div class="app-version">KORbuild Finances V3.0.0 · Development environment</div>
+<button class="quick-launch" id="quick-launch" type="button" aria-label="Lançar"><span>＋</span><b>Lançar</b></button><div class="quick-menu hidden" id="quick-menu"><div class="quick-title">O que aconteceu?</div><a href="incomes.html">💵 Recebi</a><a href="transfers.html">↔ Transferi</a><a href="investments.html">📈 Investi</a><a href="expenses.html">💸 Gastei</a></div>
+<button class="ai-fab" type="button" aria-label="KORbuild AI"><span>✦ AI</span></button>
+<nav class="mobile-nav" aria-label="Navegação móvel"><a class="mobile-nav-item active" href="dashboard.html"><span>⌂</span><small>Início</small></a><a class="mobile-nav-item" href="planning.html"><span>◉</span><small>Planejamento</small></a><button class="mobile-nav-action" id="mobile-launch" type="button" aria-label="Lançar"><span>＋</span><small>Lançar</small></button><a class="mobile-nav-item" href="settings.html"><span>👤</span><small>Perfil</small></a></nav>
 </div>
 <script src="dashboard.js?v=6.0.0"></script>
 </body></html>
