@@ -19,31 +19,25 @@
 <div class="top-actions"><button id="language-toggle" class="language-toggle" type="button">🇺🇸</button><div class="user-menu-wrap"><button id="user-menu-btn" class="user-menu-btn" type="button"><span class="user-copy"><strong id="user-name">André Nardacci</strong><small id="user-email"></small></span><span class="avatar" id="user-avatar">AN</span><span class="chevron">⌄</span></button><div id="user-menu" class="user-menu hidden"><div class="menu-header"><span class="avatar" id="menu-avatar">AN</span><div><b id="menu-full-name">André Nardacci</b><small id="menu-full-email"></small></div></div><div class="menu-divider"></div><a class="menu-item" href="cadastros.html">⚙ Configurações</a><a class="menu-item" href="settings.html">◉ Configuração financeira</a><div class="menu-divider"></div><button class="menu-item danger" id="logout" type="button">↪ Sair</button></div></div></div>
 </header>
 <section class="intro"><div class="eyebrow">PLANEJAMENTO</div><h1>O que vem pela frente?</h1><p>O plano define o destino. A realidade mostra o ritmo. Aqui, os dois ficam lado a lado.</p></section>
-
 <div id="no-plan" class="insight hidden"><div class="insight-icon">🎯</div><div><div class="section-label">PRIMEIRO PASSO</div><h3>Defina seu objetivo</h3><p>Configure seu objetivo e plano financeiro para começar a acompanhar sua evolução.</p><a class="primary-link" href="settings.html">Configurar planejamento →</a></div></div>
-
 <section id="plan-content" class="plan-content hidden">
 <section class="planning-hero">
 <div class="hero-copy"><div class="section-label">MEU SONHO</div><h2 id="goal-name">Carregando...</h2><p id="goal-description">Seu objetivo financeiro.</p><div class="hero-target" id="target">R$ 0</div><div class="hero-meta"><span>Patrimônio atual <b id="current-wealth">R$ 0</b></span><span>Falta <b id="remaining">R$ 0</b></span></div></div>
 <div class="hero-status"><span id="plan-status" class="plan-status">Analisando...</span><strong id="progress">0%</strong><small>do objetivo alcançado</small><div class="plan-progress"><span id="progress-bar"></span></div></div>
 </section>
-
 <section class="planning-grid">
-<article class="planning-panel reality-panel"><div class="panel-title"><div><div class="section-label">REALIDADE</div><h3>Quanto sua vida financeira está gerando?</h3></div><span class="period-badge">Últimos 6 meses</span></div>
+<article class="planning-panel reality-panel"><div class="panel-title"><div><div class="section-label">REALIDADE</div><h3>Quanto sua vida financeira está gerando?</h3></div><span class="period-badge">Analisando</span></div>
 <div class="reality-grid"><div class="big-metric"><small>Capacidade média de acumulação</small><strong id="real-capacity">R$ 0</strong><p>Receitas menos despesas realizadas.</p></div><div class="big-metric"><small>Investimento médio</small><strong id="real-investment">R$ 0</strong><p>Contribuições e ajustes registrados.</p></div></div>
 <div class="reality-note" id="reality-note">Analisando seus dados reais...</div>
 </article>
-
 <article class="planning-panel target-panel"><div class="panel-title"><div><div class="section-label">RITMO NECESSÁRIO</div><h3>Quanto precisa acumular por mês?</h3></div></div>
 <div class="required-value" id="required-monthly">R$ 0</div><p class="projection-note">Valor matemático estimado para alcançar sua meta dentro do prazo, considerando o patrimônio atual e a taxa do plano.</p>
 <div class="comparison"><div class="compare-row"><span>Plano configurado</span><strong id="monthly-plan">R$ 0</strong></div><div class="compare-row"><span>Diferença para o necessário</span><strong id="required-gap">R$ 0</strong></div><div class="compare-row"><span>Taxa considerada</span><strong id="plan-rate">0,00% a.m.</strong></div></div>
 </article>
 </section>
-
 <section class="planning-panel projection-panel"><div class="panel-title"><div><div class="section-label">PLANO × REALIDADE</div><h3>Se continuar nesse ritmo, onde você chega?</h3><p>Uma leitura simples da distância entre o ritmo necessário e o que seus dados mostram hoje.</p></div><span id="projection-badge" class="projection-badge">Analisando</span></div>
 <div class="projection-layout"><div class="projection-chart" id="projection-chart"></div><div class="projection-summary"><div><small>Projeção pelo plano</small><strong id="projected">R$ 0</strong></div><div><small>Projeção pelo ritmo real</small><strong id="real-projected">R$ 0</strong></div><div class="projection-box"><strong id="projected-gap">—</strong><small>Referência matemática, não garantia de resultado.</small></div></div></div>
 </section>
-
 <section class="planning-grid lower-grid">
 <article class="planning-panel"><div class="section-label">MEU MÊS</div><h3>O que aconteceu até agora?</h3><div class="period-list"><div class="period-item"><span>Receitas realizadas</span><strong id="month-income">R$ 0</strong></div><div class="period-item"><span>Despesas realizadas</span><strong id="month-expenses">R$ 0</strong></div><div class="period-item"><span>Investimentos</span><strong id="month-invested">R$ 0</strong></div></div></article>
 <article class="planning-panel next-action"><div class="section-label">LEITURA DO PLANO</div><h3 id="next-title">O que fazer agora?</h3><p id="next-text">Estamos analisando seus dados.</p><div class="next-highlight" id="next-highlight">—</div></article>
@@ -51,8 +45,8 @@
 </section>
 <div id="status" class="status hidden"></div>
 </main>
-<div class="app-version">KORbuild Finances V3.0.0 · Development environment</div>
+<div class="app-version">KORbuild Finances V3.1.0 · Development environment</div>
 </div>
-<script src="planning.js?v=2.0.0"></script>
+<script src="planning.js?v=3.1.0"></script>
 </body>
 </html>
