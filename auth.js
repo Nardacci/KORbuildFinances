@@ -18,7 +18,6 @@ window.KORbuildAuth = (() => {
     const activeMap = {
       'dashboard.html':'dashboard',
       'planning.html':'planning',
-      'dashboard-movements.html':'management',
       'transfers.html':'transfers','transfer-new.html':'transfers',
       'incomes.html':'incomes','income-new.html':'incomes','income-edit.html':'incomes',
       'expenses.html':'expenses','expense-new.html':'expenses','expense-edit.html':'expenses',
@@ -32,7 +31,6 @@ window.KORbuildAuth = (() => {
     const navigation = [
       item('dashboard','dashboard.html','⌂','Dashboard'),
       item('planning','planning.html','◉','Planejamento'),
-      item('management','dashboard-movements.html','▥','Visão Gerencial'),
       item('transactions','dashboard-movements.html','↔','Transações'),
       item('incomes','incomes.html','↓','Receitas'),
       item('expenses','expenses.html','↑','Despesas'),
