@@ -1,0 +1,17 @@
+{
+  "name": "korbuild-finances",
+  "version": "1.0.0",
+  "private": true,
+  "description": "KORbuild Finances - prototipo navegavel de gestao financeira",
+  "scripts": {
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui",
+    "test:e2e:headed": "playwright test --headed",
+    "test:e2e:report": "playwright show-report"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.48.0",
+    "dotenv": "^16.4.5",
+    "http-server": "^14.1.1"
+  }
+}
