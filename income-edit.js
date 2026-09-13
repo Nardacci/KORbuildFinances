@@ -2,6 +2,9 @@
 (()=>{'use strict';
 const $=id=>document.getElementById(id),db=()=>KORbuildAuth.client.schema('finances');
 let workspace=null,incomeId=new URLSearchParams(location.search).get('id'),accounts=[];
+const returnToReview=new URLSearchParams(location.search).get('return')==='review';
+const returnUrl=returnToReview?'workspace.html?mode=review':'incomes.html';
+if(returnToReview){const cancelLink=$('cancel-link');if(cancelLink)cancelLink.href=returnUrl;}
 const code=v=>String(v||'').trim().split(/\s+—\s+/)[0].toUpperCase();
 const initials=n=>String(n||'').trim().split(/\s+/).map(x=>x[0]).join('').slice(0,2).toUpperCase()||'A';
 function msg(t,k='error'){const e=$('form-message');if(!e)return;e.textContent=t;e.className='message '+k}
@@ -21,8 +24,8 @@ $('income-form').onsubmit=async e=>{e.preventDefault();const b=$('save-income');
  const description=$('description').value.trim(),category=$('category').value.trim(),amount=Number($('amount').value),account_id=$('account').value,currency=$('currency').value,receipt_date=$('receipt-date').value,frequency=$('frequency').value,status=$('status').value;
  if(!description||!category)throw Error('Informe descrição e categoria.');if(!Number.isFinite(amount)||amount<=0)throw Error('Informe um valor válido.');
  const a=accounts.find(x=>x.id===account_id);if(!a)throw Error('Selecione a conta de recebimento.');if(code(a.currency)!==code(currency))throw Error('A moeda da receita deve ser igual à moeda da conta.');if(!receipt_date)throw Error('Informe a data de recebimento.');
- const {error}=await db().from('incomes').update({description,category,amount,currency:code(currency),account_id,receipt_date,frequency,status}).eq('id',incomeId).eq('workspace_id',workspace.id);if(error)throw error;location.replace('incomes.html?updated=1');
+ const {error}=await db().from('incomes').update({description,category,amount,currency:code(currency),account_id,receipt_date,frequency,status}).eq('id',incomeId).eq('workspace_id',workspace.id);if(error)throw error;location.replace(returnToReview?returnUrl:'incomes.html?updated=1');
  }catch(e){console.error(e);msg(e.message||'Não foi possível salvar.');b.disabled=false}};
-$('delete-income').onclick=async()=>{if(!confirm('Excluir esta receita? Esta ação não pode ser desfeita.'))return;const b=$('delete-income');b.disabled=true;try{const {error}=await db().from('incomes').delete().eq('id',incomeId).eq('workspace_id',workspace.id);if(error)throw error;location.replace('incomes.html?deleted=1')}catch(e){console.error(e);msg(e.message||'Não foi possível excluir.');b.disabled=false}};
+$('delete-income').onclick=async()=>{if(!confirm('Excluir esta receita? Esta ação não pode ser desfeita.'))return;const b=$('delete-income');b.disabled=true;try{const {error}=await db().from('incomes').delete().eq('id',incomeId).eq('workspace_id',workspace.id);if(error)throw error;location.replace(returnToReview?returnUrl:'incomes.html?deleted=1')}catch(e){console.error(e);msg(e.message||'Não foi possível excluir.');b.disabled=false}};
 init().catch(e=>{console.error(e);msg(e.message||'Não foi possível carregar a receita.')});
 })();
