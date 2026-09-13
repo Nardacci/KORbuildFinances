@@ -16,29 +16,27 @@ window.KORbuildAuth = (() => {
     if (!sidebars.length) return;
     const file = (window.location.pathname.split('/').pop() || 'index.html').toLowerCase();
     const activeMap = {
-      'dashboard.html':'dashboard',
-      'planning.html':'planning',
-      'transfers.html':'transfers','transfer-new.html':'transfers',
-      'incomes.html':'incomes','income-new.html':'incomes','income-edit.html':'incomes',
-      'expenses.html':'expenses','expense-new.html':'expenses','expense-edit.html':'expenses',
-      'investments.html':'investments','investment-new.html':'investments','investment-edit.html':'investments','investment-detail.html':'investments','investment-launches.html':'investments','investment-launch-new.html':'investments',
-      'accounts.html':'accounts','account-new.html':'accounts','account-edit.html':'accounts',
-      'wealth-goal.html':'wealth',
-      'cadastros.html':'config','settings.html':'config','investment-types.html':'config','investment-type-new.html':'config'
+      'dashboard.html':{group:'dashboard'},
+      'planning.html':{group:'planning'},
+      'investments.html':{group:'investments'},'investment-new.html':{group:'investments'},'investment-edit.html':{group:'investments'},'investment-detail.html':{group:'investments'},'investment-launches.html':{group:'investments'},'investment-launch-new.html':{group:'investments'},'investment-launch-edit.html':{group:'investments'},
+      'expenses.html':{group:'expenses'},'expense-new.html':{group:'expenses'},'expense-edit.html':{group:'expenses'},
+      'incomes.html':{group:'incomes'},'income-new.html':{group:'incomes'},'income-edit.html':{group:'incomes'},
+      'accounts.html':{group:'accounts',child:'accounts'},'account-new.html':{group:'accounts',child:'accounts'},'account-edit.html':{group:'accounts',child:'accounts'},
+      'transfers.html':{group:'accounts',child:'transfers'},'transfer-new.html':{group:'accounts',child:'transfers'},'transfer-edit.html':{group:'accounts',child:'transfers'},
+      'dashboard-movements.html':{group:'accounts',child:'transactions'},
+      'cadastros.html':{group:'config'},'settings.html':{group:'config'},'investment-types.html':{group:'config'},'investment-type-new.html':{group:'config'}
     };
-    const activeKey = activeMap[file] || '';
-    const item = (key, href, icon, label) => `<a class="nav-item${activeKey === key ? ' active' : ''}" href="${href}"><span class="nav-icon" aria-hidden="true">${icon}</span><span>${label}</span></a>`;
+    const active = activeMap[file] || {};
+    const item = (key, href, icon, label) => `<a class="nav-item${active.group === key && !active.child ? ' active' : ''}" href="${href}"><span class="nav-icon" aria-hidden="true">${icon}</span><span>${label}</span></a>`;
+    const subitem = (child, href, label) => `<a class="nav-subitem${active.group === 'accounts' && active.child === child ? ' active' : ''}" href="${href}">${label}</a>`;
+    const accountsGroup = `<div class="nav-group${active.group === 'accounts' ? ' active' : ''}"><div class="nav-group-label"><span class="nav-icon" aria-hidden="true">♜</span><span>Contas</span></div><div class="nav-subnav">${subitem('accounts','accounts.html','Cadastro de contas')}${subitem('transfers','transfers.html','Transferências')}${subitem('transactions','dashboard-movements.html','Transações')}</div></div>`;
     const navigation = [
       item('dashboard','dashboard.html','⌂','Dashboard'),
       item('planning','planning.html','◉','Planejamento'),
-      item('transactions','dashboard-movements.html','↔','Transações'),
-      item('incomes','incomes.html','↓','Receitas'),
-      item('expenses','expenses.html','↑','Despesas'),
       item('investments','investments.html','⌁','Investimentos'),
-      item('transfers','transfers.html','↔','Transferências'),
-      item('accounts','accounts.html','♜','Contas'),
-      item('wealth','wealth-goal.html','◔','Patrimônio &amp; Sonho'),
-      item('reports','dashboard-movements.html','▤','Relatórios'),
+      item('expenses','expenses.html','↑','Despesas'),
+      item('incomes','incomes.html','↓','Receitas'),
+      accountsGroup,
       item('config','cadastros.html','⚙','Configurações')
     ].join('');
     sidebars.forEach(sidebar => {
