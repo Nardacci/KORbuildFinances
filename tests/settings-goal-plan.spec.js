@@ -20,7 +20,7 @@ test.describe('Configurações — objetivo e plano', () => {
     original = await page.evaluate(async (workspaceId) => {
       const client = window.KORbuildAuth.client.schema('finances');
       const { data: ws } = await client.from('user_workspaces').select('display_name,country,primary_currency').eq('id', workspaceId).maybeSingle();
-      const { data: goal } = await client.from('goals').select('id,name,target_amount,target_years,start_date').eq('workspace_id', workspaceId).order('created_at', { ascending: false }).limit(1).maybeSingle();
+      const { data: goal } = await client.from('goals').select('id,name,target_amount,target_years,start_date,initial_wealth,include_initial_wealth').eq('workspace_id', workspaceId).order('created_at', { ascending: false }).limit(1).maybeSingle();
       const { data: plan } = await client.from('plans').select('id,projected_monthly_contribution').eq('workspace_id', workspaceId).order('created_at', { ascending: false }).limit(1).maybeSingle();
       return { workspace: ws, goal, plan };
     }, workspaceId);
@@ -34,7 +34,7 @@ test.describe('Configurações — objetivo e plano', () => {
     const page = await openDbPage(browser, testInfo);
     await page.evaluate(async (o) => {
       const client = window.KORbuildAuth.client.schema('finances');
-      if (o.goal) await client.from('goals').update({ name: o.goal.name, target_amount: o.goal.target_amount, target_years: o.goal.target_years, start_date: o.goal.start_date }).eq('id', o.goal.id);
+      if (o.goal) await client.from('goals').update({ name: o.goal.name, target_amount: o.goal.target_amount, target_years: o.goal.target_years, start_date: o.goal.start_date, initial_wealth: o.goal.initial_wealth, include_initial_wealth: o.goal.include_initial_wealth }).eq('id', o.goal.id);
       if (o.plan) await client.from('plans').update({ projected_monthly_contribution: o.plan.projected_monthly_contribution }).eq('id', o.plan.id);
     }, original);
     await page.close();
@@ -51,7 +51,12 @@ test.describe('Configurações — objetivo e plano', () => {
     await page.fill('#goalTarget', '500000');
     await page.fill('#goalYears', '20');
     await page.fill('#goalStartDate', '2026-01-01');
+    await page.fill('#goalInitial', '50000');
     await page.fill('#planContribution', '1');
+
+    // "Data estimada" recalcula ao vivo a partir de prazo + data inicial (sem salvar ainda)
+    await expect(page.locator('#estimatedDateValue')).toHaveText('01/01/2046');
+
     await page.click('#save');
 
     await expect(page.locator('#message')).toHaveText('Alterações salvas com sucesso.');
@@ -62,17 +67,21 @@ test.describe('Configurações — objetivo e plano', () => {
     await expect(page.locator('#goalTarget')).toHaveValue('500000');
     await expect(page.locator('#goalYears')).toHaveValue('20');
     await expect(page.locator('#goalStartDate')).toHaveValue('2026-01-01');
+    await expect(page.locator('#goalInitial')).toHaveValue('50000');
     await expect(page.locator('#planContribution')).toHaveValue('1');
+    await expect(page.locator('#estimatedDateValue')).toHaveText('01/01/2046');
 
     // confirma que ficou persistido no banco, nao so na tela
     const persisted = await page.evaluate(async (id) => {
       const client = window.KORbuildAuth.client.schema('finances');
-      const { data } = await client.from('goals').select('name,target_amount,target_years,start_date').eq('id', id).maybeSingle();
+      const { data } = await client.from('goals').select('name,target_amount,target_years,start_date,initial_wealth,include_initial_wealth').eq('id', id).maybeSingle();
       return data;
     }, original.goal.id);
     expect(persisted.name).toBe(newGoalName);
     expect(Number(persisted.target_amount)).toBe(500000);
     expect(persisted.target_years).toBe(20);
+    expect(Number(persisted.initial_wealth)).toBe(50000);
+    expect(persisted.include_initial_wealth).toBe(true);
   });
 
   test('aviso aparece quando o aporte ultrapassa a receita, e some quando ajustado', async ({ page }) => {
