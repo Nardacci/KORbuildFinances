@@ -19,4 +19,19 @@ async function waitForSelectOptions(page, selector, minCount = 2) {
     .toBeGreaterThanOrEqual(minCount);
 }
 
-module.exports = { waitForWorkspaceReady, waitForSelectOptions };
+// planning.html so revela #plan-content (removendo a classe "hidden") depois
+// que a meta/plano e todos os agregados de 12 meses terminam de carregar —
+// nenhum outro await acontece depois disso, entao e um sinal de prontidao
+// confiavel para ler #real-capacity/#real-investment.
+async function waitForPlanReady(page) {
+  await expect(page.locator('#plan-content')).not.toHaveClass(/hidden/, { timeout: 15000 });
+}
+
+// dashboard-movements.html so atualiza #page-title depois que o refresh() do
+// mes selecionado termina — esperar a mudanca de titulo evita ler os totais
+// antigos (do mes anterior) logo apos trocar o filtro.
+async function waitForMonthRefresh(page, previousTitle) {
+  await expect(page.locator('#page-title')).not.toHaveText(previousTitle, { timeout: 15000 });
+}
+
+module.exports = { waitForWorkspaceReady, waitForSelectOptions, waitForPlanReady, waitForMonthRefresh };
