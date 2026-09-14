@@ -1,19 +1,4 @@
 /* KORbuild Finances — Workspace Setup */
-(function(){
-  const style=document.createElement('style');
-  style.textContent=`
-    .step-icon{display:none!important}
-    .wizard-step b{font-size:0!important}
-    .wizard-step b::after{font-size:18px;line-height:1}
-    .wizard-step[data-step-link="1"] b::after{content:'👤'}
-    .wizard-step[data-step-link="2"] b::after{content:'💰'}
-    .wizard-step[data-step-link="3"] b::after{content:'💵'}
-    .wizard-step[data-step-link="4"] b::after{content:'🎯'}
-    .wizard-step[data-step-link="5"] b::after{content:'📐'}
-  `;
-  document.head.appendChild(style);
-})();
-
 const STORAGE_KEY='korbuild-finances-wizard-v2';
 const wizardState=JSON.parse(localStorage.getItem(STORAGE_KEY)||'{}');
 let step=Number(wizardState.step)||1;
@@ -101,7 +86,7 @@ function enterReviewStep(n){
 }
 async function saveReviewStep1(){
   collectWizard();if(!valid())return;
-  const btn=$('nextBtn'),original=btn.textContent;btn.disabled=true;btn.textContent='Salvando…';
+  const btn=$('saveBtn'),original=btn.textContent;btn.disabled=true;btn.textContent='Salvando…';
   try{
     const {error}=await db().from('user_workspaces').update({display_name:wizardState.name,country:wizardState.country,primary_currency:wizardState.currency}).eq('id',workspace.id);
     if(error)throw error;
@@ -115,7 +100,7 @@ async function saveReviewStep4(){
   collectWizard();
   if(!valid()||!reviewPlanFieldValid())return;
   const planContributionValue=Number($('rPlanContribution').value||0);
-  const btn=$('nextBtn'),original=btn.textContent;btn.disabled=true;btn.textContent='Salvando…';
+  const btn=$('saveBtn'),original=btn.textContent;btn.disabled=true;btn.textContent='Salvando…';
   try{
     const updates=[];
     if(reviewIds.goalId)updates.push(db().from('goals').update({name:wizardState.goalName,target_amount:wizardState.goalTarget,target_years:wizardState.goalYears,start_date:wizardState.startDate,initial_wealth:wizardState.includeInitial?Number(wizardState.initial||0):0,include_initial_wealth:!!wizardState.includeInitial}).eq('id',reviewIds.goalId));
@@ -132,58 +117,55 @@ async function saveReviewStep4(){
 
 function renderStep(){
   document.querySelectorAll('.step').forEach(x=>x.classList.toggle('step-active',Number(x.dataset.step)===step));
-  document.querySelectorAll('.wizard-step').forEach(x=>{const n=Number(x.dataset.stepLink);x.classList.toggle('active',n===step);x.classList.toggle('done',mode==='onboarding'&&n<step);});
-  $('stepCounter').textContent=`${step} de 5`;
-  $('stepProgress').style.width=(step*20)+'%';
+  document.querySelectorAll('.wizard-step').forEach(x=>{const n=Number(x.dataset.stepLink);x.classList.toggle('active',n===step);x.classList.toggle('done',mode==='onboarding'?n<step:n!==step);});
+  $('topbarFill').style.width=(step*20)+'%';
+  $('backBtn').textContent='← Voltar';
   if(mode==='review'){
     $('step5-onboarding').classList.add('hidden');
     $('step5-review').classList.toggle('hidden',step!==5);
     $('step4-review-plan').classList.toggle('hidden',step!==4);
     if(step===4){updateEstimatedDate();updateWarningEl($('rContributionWarning'),Number($('rPlanContribution').value||0));}
     if(step===5)renderReviewSummary();
-    $('backBtn').textContent='← Voltar ao resumo';
-    $('backBtn').disabled=step===5;
-    $('nextBtn').textContent=step===5?'Voltar ao Dashboard':'Salvar e voltar ao resumo';
-    $('nextBtn').disabled=step===5?false:(step===4?!(valid()&&reviewPlanFieldValid()):!valid());
+    const reviewing=step===5;
+    $('backBtn').disabled=reviewing;
+    $('saveBtn').textContent='Salvar e continuar →';
+    $('saveBtn').disabled=reviewing||(step===4?!(valid()&&reviewPlanFieldValid()):!valid());
+    $('confirmBtn').textContent='Voltar ao Dashboard ✓';
+    $('confirmBtn').disabled=!reviewing;
   }else{
     $('step5-onboarding').classList.remove('hidden');
     $('step5-review').classList.add('hidden');
     $('step4-review-plan').classList.add('hidden');
-    $('backBtn').textContent='← Voltar';
     $('backBtn').disabled=step===1;
-    $('nextBtn').textContent=step===5?'Começar minha jornada →':'Continuar →';
-    $('nextBtn').disabled=!valid();
+    const isLast=step===5;
+    $('saveBtn').textContent='Salvar e continuar →';
+    $('saveBtn').disabled=isLast||!valid();
+    $('confirmBtn').textContent='Começar minha jornada →';
+    $('confirmBtn').disabled=!isLast||!valid();
     if(step===4)updateEstimatedDate();
     if(step===5)updatePlan();
   }
   saveLocal();
 }
-function goNext(){collectWizard();if(!valid())return;if(step<5){step++;renderStep();persistDraft();}else finish();}
+function goNext(){collectWizard();if(!valid()||step>=5)return;step++;renderStep();persistDraft();}
 function goBack(){if(step>1){collectWizard();step--;renderStep();persistDraft();}}
-async function finish(){const button=$('nextBtn');button.disabled=true;button.textContent='Finalizando…';try{const result=await completeSetup();alert(result.alreadyComplete?'Seu espaço financeiro já está configurado.':'Tudo pronto! Seu espaço financeiro foi configurado com sucesso.');window.location.replace('dashboard.html');}catch(error){console.error('Falha ao concluir onboarding:',error);alert(error.message||'Não foi possível concluir a configuração. Seus dados locais foram preservados.');button.disabled=false;button.textContent='Começar minha jornada →';}}
+async function finish(){const button=$('confirmBtn');button.disabled=true;button.textContent='Finalizando…';try{const result=await completeSetup();alert(result.alreadyComplete?'Seu espaço financeiro já está configurado.':'Tudo pronto! Seu espaço financeiro foi configurado com sucesso.');window.location.replace('dashboard.html');}catch(error){console.error('Falha ao concluir onboarding:',error);alert(error.message||'Não foi possível concluir a configuração. Seus dados locais foram preservados.');button.disabled=false;button.textContent='Começar minha jornada →';}}
 document.querySelectorAll('.step input,.step select').forEach(e=>e.addEventListener('input',()=>{collectWizard();renderStep();persistDraft();}));
 document.querySelectorAll('.choice').forEach(b=>b.addEventListener('click',()=>{wizardState.includeInitial=b.dataset.choice==='yes';document.querySelectorAll('.choice').forEach(x=>x.classList.remove('selected'));b.classList.add('selected');$('initialWealthWrap').classList.toggle('hidden',!wizardState.includeInitial);collectWizard();renderStep();persistDraft();}));
-document.querySelectorAll('.wizard-step').forEach(b=>b.addEventListener('click',()=>{
-  const target=Number(b.dataset.stepLink);
-  if(mode==='review'){
-    if(target===2){location.href=reviewIds.accountId?`account-edit.html?id=${encodeURIComponent(reviewIds.accountId)}&return=review`:'accounts.html';return;}
-    if(target===3){location.href=reviewIds.incomeId?`income-edit.html?id=${encodeURIComponent(reviewIds.incomeId)}&return=review`:'incomes.html';return;}
-    enterReviewStep(target);
-    return;
-  }
-  collectWizard();if(target<=step||valid()){step=target;renderStep();persistDraft();}
-}));
 $('rvEditYou').addEventListener('click',()=>enterReviewStep(1));
 $('rvEditGoal').addEventListener('click',()=>enterReviewStep(4));
 $('rvEditPlan').addEventListener('click',()=>enterReviewStep(4));
-$('nextBtn').addEventListener('click',()=>{
+$('saveBtn').addEventListener('click',()=>{
   if(mode==='review'){
-    if(step===5){location.href='dashboard.html';return;}
     if(step===1){saveReviewStep1();return;}
     if(step===4){saveReviewStep4();return;}
     return;
   }
   goNext();
+});
+$('confirmBtn').addEventListener('click',()=>{
+  if(mode==='review'){location.href='dashboard.html';return;}
+  finish();
 });
 $('backBtn').addEventListener('click',()=>{
   if(mode==='review'){

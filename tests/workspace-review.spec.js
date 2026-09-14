@@ -71,7 +71,7 @@ test.describe('Wizard — modo revisão pós-onboarding', () => {
     await page.click('#rvEditYou');
     await expect(page.locator('.step[data-step="1"]')).toHaveClass(/step-active/);
     await page.fill('#wName', newName);
-    await page.click('#nextBtn');
+    await page.click('#saveBtn');
     await expect(page.locator('.step[data-step="5"]')).toHaveClass(/step-active/);
     await expect(page.locator('#rvName')).toHaveText(newName);
     const persisted = await page.evaluate(async (id) => {
@@ -99,7 +99,7 @@ test.describe('Wizard — modo revisão pós-onboarding', () => {
     await page.fill('#wGoalTarget', '500000');
     await page.fill('#wGoalYears', '20');
     await page.fill('#rPlanContribution', '1');
-    await page.click('#nextBtn');
+    await page.click('#saveBtn');
 
     await expect(page.locator('.step[data-step="5"]')).toHaveClass(/step-active/);
     await expect(page.locator('#rvGoalName')).toHaveText(newGoalName);
