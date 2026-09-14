@@ -85,6 +85,7 @@ function enterReviewStep(n){
   step=n;renderStep();
 }
 async function saveReviewStep1(){
+  if(!workspace){alert('Não foi possível salvar: seu espaço financeiro não está carregado. Recarregue a página e tente novamente.');return;}
   collectWizard();if(!valid())return;
   const btn=$('saveBtn'),original=btn.textContent;btn.disabled=true;btn.textContent='Salvando…';
   try{
@@ -97,6 +98,7 @@ async function saveReviewStep1(){
   finally{btn.disabled=false;btn.textContent=original;}
 }
 async function saveReviewStep4(){
+  if(!workspace){alert('Não foi possível salvar: seu espaço financeiro não está carregado. Recarregue a página e tente novamente.');return;}
   collectWizard();
   if(!valid()||!reviewPlanFieldValid())return;
   const planContributionValue=Number($('rPlanContribution').value||0);
@@ -179,12 +181,17 @@ $('backBtn').addEventListener('click',()=>{
     const session=await KORbuildAuth.session();currentUser=session?.user||null;
     if(!currentUser){window.location.replace('login.html');return;}
     workspace=await getWorkspace();
-    if(mode==='review'&&workspace?.setup_completed){
+    if(mode==='review'){
+      if(!workspace?.setup_completed){throw new Error('Não encontramos um espaço financeiro configurado para revisar.');}
       await loadReviewData();
       enterReviewStep(5);
       return;
     }
     if(workspace?.setup_completed){window.location.replace('dashboard.html');return;}
     await loadDraft();fillWizard();renderStep();
-  }catch(error){console.error('Inicialização do Wizard:',error);const status=document.querySelector('.save-status');if(status)status.textContent='Não foi possível conectar ao espaço financeiro.';}
+  }catch(error){
+    console.error('Inicialização do Wizard:',error);
+    if(mode==='review'){alert('Não foi possível carregar seu espaço financeiro para revisão. Recarregue a página e tente novamente.');window.location.replace('dashboard.html');return;}
+    const status=document.querySelector('.save-status');if(status)status.textContent='Não foi possível conectar ao espaço financeiro.';
+  }
 })();
