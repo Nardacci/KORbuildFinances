@@ -38,10 +38,24 @@ body{margin:0;background:var(--db-bg);color:var(--db-ink);font:14px/1.5 Inter,sy
 .status-card.grace .status-metric strong{color:var(--db-amber)}
 .status-card.blocked .status-icon{background:#fff0f0;color:var(--db-red)}
 .status-card.blocked .status-metric strong{color:var(--db-red)}
-.contact-note{background:#fff;border:1px solid var(--db-line);border-radius:14px;padding:18px;margin-top:8px}
-.contact-note strong{display:block;font-size:13px;margin-bottom:4px}
-.contact-note p{margin:0;color:var(--db-muted);font-size:12px}
-.contact-note.hidden{display:none}
+.payment-card{background:#fff;border:1px solid var(--db-line);border-radius:16px;padding:20px;margin-top:8px}
+.payment-card.hidden{display:none}
+.payment-card.urgent{border-color:#f0c9cf}
+.payment-card-head strong{display:block;font-size:14px;margin-bottom:4px}
+.payment-card-head p{margin:0;color:var(--db-muted);font-size:12px}
+.price-block{margin:16px 0;padding:14px;border-radius:10px;background:#f6f9fd}
+.price-block strong{display:block;font-size:22px;font-weight:800}
+.price-block p{margin:4px 0 0;font-size:11px;color:var(--db-muted)}
+.payment-details{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px}
+.payment-row{display:flex;flex-direction:column;gap:3px}
+.payment-row small{font-size:9px;font-weight:800;letter-spacing:.08em;color:var(--db-muted);text-transform:uppercase}
+.payment-row strong{font-size:13px}
+.payment-row-key{grid-column:1/-1}
+.payment-key{display:flex;align-items:center;gap:10px}
+.payment-key code{flex:1;background:#f5f8fc;border:1px solid var(--db-line);border-radius:8px;padding:9px 11px;font-size:12px;word-break:break-all}
+.payment-key button{height:34px;padding:0 12px;border:1px solid var(--db-line);border-radius:8px;background:#fff;font-weight:700;font-size:11px;cursor:pointer;white-space:nowrap}
+.payment-instructions-text{margin:0 0 8px;font-size:12px;color:var(--db-ink);line-height:1.5}
+.payment-contact{margin:0;font-size:11px;color:var(--db-muted)}
 .error-note{margin-top:16px;padding:14px;border-radius:10px;background:#fff0f0;color:#a63b47;font-size:12px}
 .error-note.hidden{display:none}
-@media(max-width:600px){.status-card{flex-wrap:wrap}.status-metric{border-left:0;padding-left:0;margin-left:60px;text-align:left}}
+@media(max-width:600px){.status-card{flex-wrap:wrap}.status-metric{border-left:0;padding-left:0;margin-left:60px;text-align:left}.payment-details{grid-template-columns:1fr}}

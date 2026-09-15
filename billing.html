@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>KORbuild Finances · Assinatura</title>
-<link rel="stylesheet" href="billing.css?v=1.0.0">
+<link rel="stylesheet" href="billing.css?v=1.1.0">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -44,13 +44,27 @@
     <div class="status-metric"><strong id="status-days">—</strong><span id="status-days-label"></span></div>
   </section>
 
-  <section id="contact-note" class="contact-note hidden">
-    <strong>Precisa regularizar seu acesso?</strong>
-    <p>As instruções de pagamento ainda não estão disponíveis nesta tela. Entre em contato com a equipe do KORbuild Finances para regularizar sua assinatura.</p>
+  <section id="payment-card" class="payment-card hidden">
+    <div class="payment-card-head">
+      <strong id="payment-card-title">Regularize sua assinatura</strong>
+      <p id="payment-card-intro"></p>
+    </div>
+    <div class="price-block">
+      <strong id="price-amount">—</strong>
+      <p id="price-note"></p>
+    </div>
+    <div class="payment-details">
+      <div class="payment-row"><small>Método</small><strong id="payment-method-value">—</strong></div>
+      <div class="payment-row"><small>Titular</small><strong id="payment-account-holder-value">—</strong></div>
+      <div class="payment-row"><small>Banco</small><strong id="payment-bank-value">—</strong></div>
+      <div class="payment-row payment-row-key"><small>Chave Pix</small><div class="payment-key"><code id="payment-key-value">—</code><button id="copy-payment-key" type="button">Copiar</button></div></div>
+    </div>
+    <p id="payment-instructions-text" class="payment-instructions-text"></p>
+    <p id="payment-contact-value" class="payment-contact"></p>
   </section>
 
   <div id="status" class="error-note hidden" role="alert"></div>
 </div>
-<script src="billing.js?v=1.0.0"></script>
+<script src="billing.js?v=1.1.0"></script>
 </body>
 </html>

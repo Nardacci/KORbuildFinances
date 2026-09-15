@@ -29,11 +29,66 @@
     $('status-days-label').textContent = metricLabel;
   }
 
+  function fmtMoney(v, currency) {
+    try { return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: currency || 'USD' }).format(Number(v)); }
+    catch { return (currency || 'USD') + ' ' + Number(v || 0).toFixed(2); }
+  }
+
+  function renderPrice(price) {
+    const base = price?.base_monthly_price;
+    const adjustment = Number(price?.price_adjustment_percent || 0);
+    const final = price?.monthly_price;
+    const currency = price?.currency || 'USD';
+
+    if (base == null) {
+      $('price-amount').textContent = 'Valor a definir';
+      $('price-note').textContent = adjustment !== 0
+        ? 'Quando o preço padrão for definido, um ajuste de ' + (adjustment > 0 ? '+' : '') + adjustment + '% será aplicado ao seu workspace.'
+        : 'O preço ainda não foi definido pela equipe do KORbuild Finances.';
+      return;
+    }
+
+    $('price-amount').textContent = fmtMoney(final, currency) + ' / mês';
+    $('price-note').textContent = adjustment !== 0
+      ? 'Ajuste de ' + (adjustment > 0 ? '+' : '') + adjustment + '% aplicado sobre ' + fmtMoney(base, currency) + '.'
+      : '';
+  }
+
+  function renderPaymentInstructions(instr) {
+    $('payment-method-value').textContent = instr?.method || '—';
+    $('payment-account-holder-value').textContent = instr?.account_holder || '—';
+    $('payment-bank-value').textContent = instr?.bank_name || '—';
+    $('payment-key-value').textContent = instr?.pix_key || '—';
+    $('payment-instructions-text').textContent = instr?.instructions || '';
+    $('payment-contact-value').textContent = instr?.payment_contact ? 'Confirmação: ' + instr.payment_contact : '';
+  }
+
+  async function loadPaymentSection(status) {
+    const card = $('payment-card');
+    const needsPayment = status === 'GRACE_PERIOD' || status === 'BLOCKED';
+    if (!needsPayment) { card.classList.add('hidden'); return; }
+
+    card.classList.remove('hidden');
+    card.classList.toggle('urgent', status === 'BLOCKED');
+    $('payment-card-title').textContent = status === 'BLOCKED'
+      ? 'Regularize agora para restaurar o acesso'
+      : 'Regularize sua assinatura';
+    $('payment-card-intro').textContent = status === 'BLOCKED'
+      ? 'Seu acesso está bloqueado. Use as informações abaixo para concluir o pagamento e restaurar o acesso.'
+      : 'Seu teste encerrou, mas seu acesso continua por enquanto. Use as informações abaixo para regularizar antes que o acesso seja bloqueado.';
+
+    const [{ data: priceRows, error: priceError }, { data: instrRows, error: instrError }] = await Promise.all([
+      db().rpc('get_own_commercial_price'),
+      db().rpc('get_own_payment_instructions')
+    ]);
+    if (priceError || instrError) { showError('Não foi possível carregar as informações de pagamento.'); return; }
+    renderPrice((priceRows || [])[0] || {});
+    renderPaymentInstructions((instrRows || [])[0] || {});
+  }
+
   function renderAccess(access) {
     const status = String(access?.status || 'UNKNOWN').toUpperCase();
     const days = Math.max(0, Number(access?.days_remaining || 0));
-    const showContact = status === 'GRACE_PERIOD' || status === 'BLOCKED' || status === 'SUSPENDED' || status === 'CANCELLED';
-    $('contact-note').classList.toggle('hidden', !showContact);
 
     if (status === 'ACTIVE') {
       $('billing-subtitle').textContent = 'Seu workspace está com acesso completo.';
@@ -60,6 +115,7 @@
       $('billing-subtitle').textContent = 'Não foi possível determinar o status da sua assinatura.';
       setStatusCard({ cardClass: '', icon: '?', eyebrow: 'STATUS DESCONHECIDO', title: 'Não foi possível determinar o status da sua assinatura', message: 'Atualize a página ou entre em contato com o suporte.', metric: '—', metricLabel: '' });
     }
+    return status;
   }
 
   function showError(msg) {
@@ -69,6 +125,18 @@
     el.classList.remove('hidden');
   }
 
+  $('copy-payment-key')?.addEventListener('click', async () => {
+    const key = $('payment-key-value').textContent;
+    if (!key || key === '—') return;
+    try {
+      await navigator.clipboard.writeText(key);
+      const btn = $('copy-payment-key');
+      const old = btn.textContent;
+      btn.textContent = 'Copiado ✓';
+      setTimeout(() => { btn.textContent = old; }, 1800);
+    } catch (e) { console.error(e); }
+  });
+
   async function load() {
     const session = await KORbuildAuth.session();
     if (!session?.user) { location.replace('index.html'); return; }
@@ -77,7 +145,8 @@
 
     const { data: access, error } = await db().rpc('get_workspace_access_status');
     if (error) { showError('Não foi possível carregar o status da sua assinatura.'); return; }
-    renderAccess(access);
+    const status = renderAccess(access);
+    await loadPaymentSection(status);
   }
 
   load().catch(e => { console.error(e); showError('Não foi possível carregar a página de assinatura.'); });
