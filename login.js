@@ -14,6 +14,14 @@
 
   async function resolvePostLoginRoute(user) {
     const db = KORbuildAuth.client.schema('finances');
+
+    const { data: isAdmin, error: adminError } = await db.rpc('is_finances_admin');
+    if (adminError) {
+      console.error('Finances admin check failed:', adminError);
+      throw new Error('Não foi possível verificar seu acesso.');
+    }
+    if (isAdmin) return 'finances-admin.html';
+
     const { data, error } = await db
       .from('user_workspaces')
       .select('id, setup_completed')

@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>KORbuild Finances · Administração</title>
+<link rel="stylesheet" href="finances-admin.css?v=1.0.0">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="supabase-config.js"></script>
+<script src="auth.js"></script>
+</head>
+<body data-ai-assistant="off">
+<div class="admin-shell">
+  <header class="topbar">
+    <div><strong>KORbuild Finances</strong><small>Administração</small></div>
+    <div class="user-menu-wrap">
+      <button id="user-menu-btn" class="user-menu-btn" type="button" aria-expanded="false">
+        <span class="avatar" id="user-avatar">A</span>
+        <span class="user-copy"><strong id="user-name">Admin</strong><small id="user-email"></small></span>
+      </button>
+      <div id="user-menu" class="user-menu hidden">
+        <div class="menu-header"><span class="avatar" id="menu-avatar">A</span><div><b id="menu-full-name">Admin</b><small id="menu-full-email"></small></div></div>
+        <div class="menu-divider"></div>
+        <button class="menu-item danger" id="logout" type="button">↪ <span>Sair</span></button>
+      </div>
+    </div>
+  </header>
+
+  <section class="intro">
+    <div class="eyebrow">SUPER ADMIN — KORBUILD FINANCES</div>
+    <h1>Consumo de IA</h1>
+    <p>Visão agregada e configuração de limites de IA por workspace.</p>
+  </section>
+
+  <section class="summary-grid">
+    <article class="summary-card"><small>Workspaces</small><strong id="summary-workspaces">—</strong></article>
+    <article class="summary-card"><small>Chamadas este mês</small><strong id="summary-calls">—</strong></article>
+    <article class="summary-card"><small>Em alerta (≥80%)</small><strong id="summary-alerts">—</strong></article>
+  </section>
+
+  <section class="panel">
+    <div class="panel-heading"><h2>Limites por workspace</h2><p>Ajuste o limite mensal de chamadas de IA e habilite/desabilite por workspace.</p></div>
+    <div id="workspaces-list"></div>
+  </section>
+
+  <div id="status" class="status hidden" role="alert"></div>
+</div>
+<script src="finances-admin.js?v=1.0.0"></script>
+</body>
+</html>
