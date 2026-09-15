@@ -34,24 +34,40 @@
     catch { return (currency || 'USD') + ' ' + Number(v || 0).toFixed(2); }
   }
 
-  function renderPrice(price) {
+  function renderPlanPrice(price) {
     const base = price?.base_monthly_price;
     const adjustment = Number(price?.price_adjustment_percent || 0);
     const final = price?.monthly_price;
     const currency = price?.currency || 'USD';
 
     if (base == null) {
-      $('price-amount').textContent = 'Valor a definir';
-      $('price-note').textContent = adjustment !== 0
+      $('plan-price').textContent = 'Valor a definir';
+      $('plan-price-suffix').textContent = '';
+      $('plan-price-note').textContent = adjustment !== 0
         ? 'Quando o preço padrão for definido, um ajuste de ' + (adjustment > 0 ? '+' : '') + adjustment + '% será aplicado ao seu workspace.'
         : 'O preço ainda não foi definido pela equipe do KORbuild Finances.';
       return;
     }
 
-    $('price-amount').textContent = fmtMoney(final, currency) + ' / mês';
-    $('price-note').textContent = adjustment !== 0
+    $('plan-price').textContent = fmtMoney(final, currency);
+    $('plan-price-suffix').textContent = '/ mês';
+    $('plan-price-note').textContent = adjustment !== 0
       ? 'Ajuste de ' + (adjustment > 0 ? '+' : '') + adjustment + '% aplicado sobre ' + fmtMoney(base, currency) + '.'
       : '';
+  }
+
+  async function loadPlanPrice() {
+    const { data, error } = await db().rpc('get_own_commercial_price');
+    if (error) { console.error(error); return; }
+    renderPlanPrice((data || [])[0] || {});
+  }
+
+  function updatePlanCta(status) {
+    const cta = $('plan-cta');
+    if (!cta) return;
+    const needsPayment = status === 'GRACE_PERIOD' || status === 'BLOCKED';
+    cta.classList.toggle('hidden', !needsPayment);
+    cta.textContent = status === 'BLOCKED' ? 'Ver instruções de pagamento →' : 'Regularizar assinatura →';
   }
 
   function renderPaymentInstructions(instr) {
@@ -77,12 +93,8 @@
       ? 'Seu acesso está bloqueado. Use as informações abaixo para concluir o pagamento e restaurar o acesso.'
       : 'Seu teste encerrou, mas seu acesso continua por enquanto. Use as informações abaixo para regularizar antes que o acesso seja bloqueado.';
 
-    const [{ data: priceRows, error: priceError }, { data: instrRows, error: instrError }] = await Promise.all([
-      db().rpc('get_own_commercial_price'),
-      db().rpc('get_own_payment_instructions')
-    ]);
-    if (priceError || instrError) { showError('Não foi possível carregar as informações de pagamento.'); return; }
-    renderPrice((priceRows || [])[0] || {});
+    const { data: instrRows, error: instrError } = await db().rpc('get_own_payment_instructions');
+    if (instrError) { showError('Não foi possível carregar as instruções de pagamento.'); return; }
     renderPaymentInstructions((instrRows || [])[0] || {});
   }
 
@@ -125,6 +137,10 @@
     el.classList.remove('hidden');
   }
 
+  $('plan-cta')?.addEventListener('click', () => {
+    $('payment-card')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  });
+
   $('copy-payment-key')?.addEventListener('click', async () => {
     const key = $('payment-key-value').textContent;
     if (!key || key === '—') return;
@@ -146,7 +162,8 @@
     const { data: access, error } = await db().rpc('get_workspace_access_status');
     if (error) { showError('Não foi possível carregar o status da sua assinatura.'); return; }
     const status = renderAccess(access);
-    await loadPaymentSection(status);
+    updatePlanCta(status);
+    await Promise.all([loadPlanPrice(), loadPaymentSection(status)]);
   }
 
   load().catch(e => { console.error(e); showError('Não foi possível carregar a página de assinatura.'); });

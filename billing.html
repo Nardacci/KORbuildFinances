@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>KORbuild Finances · Assinatura</title>
-<link rel="stylesheet" href="billing.css?v=1.1.0">
+<link rel="stylesheet" href="billing.css?v=1.2.0">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -44,14 +44,29 @@
     <div class="status-metric"><strong id="status-days">—</strong><span id="status-days-label"></span></div>
   </section>
 
+  <section class="plan-card">
+    <div class="plan-card-head">
+      <div><small>KORBUILD FINANCES</small><h2>Acesso completo à plataforma</h2></div>
+      <span class="plan-badge">PLANO ÚNICO</span>
+    </div>
+    <p class="plan-description">Tudo que o KORbuild Finances oferece, sem restrição de recursos.</p>
+    <ul class="features">
+      <li><span>✓</span> Acesso completo a todas as funcionalidades do KORbuild Finances</li>
+      <li><span>✓</span> Planejamento e acompanhamento da sua meta financeira</li>
+      <li><span>✓</span> Gestão de investimentos e patrimônio multimoeda</li>
+      <li><span>✓</span> Kora, sua assistente financeira com IA</li>
+      <li><span>✓</span> Relatórios, histórico e visão consolidada de movimentações</li>
+    </ul>
+    <div class="price-row"><strong id="plan-price">—</strong><span id="plan-price-suffix">/ mês</span></div>
+    <p id="plan-price-note" class="plan-price-note"></p>
+    <button id="plan-cta" class="plan-cta hidden" type="button">Ver instruções de pagamento →</button>
+    <p class="provider-note">As instruções de pagamento são fornecidas com segurança pelo KORbuild Finances.</p>
+  </section>
+
   <section id="payment-card" class="payment-card hidden">
     <div class="payment-card-head">
       <strong id="payment-card-title">Regularize sua assinatura</strong>
       <p id="payment-card-intro"></p>
-    </div>
-    <div class="price-block">
-      <strong id="price-amount">—</strong>
-      <p id="price-note"></p>
     </div>
     <div class="payment-details">
       <div class="payment-row"><small>Método</small><strong id="payment-method-value">—</strong></div>
@@ -63,8 +78,20 @@
     <p id="payment-contact-value" class="payment-contact"></p>
   </section>
 
+  <section class="info-card">
+    <small>COMO FUNCIONA</small>
+    <div class="info-step"><b>1</b><div><strong>Veja o valor e os dados de pagamento</strong><p>Calculados especificamente para o seu workspace.</p></div></div>
+    <div class="info-step"><b>2</b><div><strong>Pague via Pix</strong><p>Usando a chave e as instruções mostradas nesta página.</p></div></div>
+    <div class="info-step"><b>3</b><div><strong>Envie a confirmação</strong><p>Seu acesso é reativado manualmente após a confirmação do pagamento.</p></div></div>
+  </section>
+
+  <section class="info-card muted">
+    <small>SEUS DADOS</small>
+    <p>Seu workspace e seus dados financeiros continuam preservados mesmo que seu acesso fique temporariamente pausado.</p>
+  </section>
+
   <div id="status" class="error-note hidden" role="alert"></div>
 </div>
-<script src="billing.js?v=1.1.0"></script>
+<script src="billing.js?v=1.2.0"></script>
 </body>
 </html>
