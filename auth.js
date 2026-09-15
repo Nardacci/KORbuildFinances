@@ -45,3 +45,174 @@ window.KORbuildAuth = (() => {
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', render, { once:true }); else render();
 })();
+
+/* KORbuild Finances — assistente AI global (FAB + painel) */
+(function aiAssistant() {
+  const HISTORY_KEY = 'korbuild-ai-history';
+  const DISPLAY_HISTORY_LIMIT = 40; // teto do sessionStorage (exibição)
+  const API_HISTORY_LIMIT = 8;      // últimas N mensagens de fato mandadas à finances-ai
+
+  function loadHistory() {
+    try { return JSON.parse(sessionStorage.getItem(HISTORY_KEY) || '[]'); }
+    catch { return []; }
+  }
+  function saveHistory(history) {
+    const trimmed = history.slice(-DISPLAY_HISTORY_LIMIT);
+    try { sessionStorage.setItem(HISTORY_KEY, JSON.stringify(trimmed)); } catch {}
+    return trimmed;
+  }
+  // Descarta uma pergunta sem resposta no fim (de uma chamada anterior que
+  // falhou) antes de recortar os últimos N -- senão a API da Anthropic
+  // rejeita por quebra de alternância user/assistant. O backend faz a
+  // mesma checagem de forma obrigatória (sanitizeHistory em index.ts),
+  // porque aquele endpoint não pode confiar no que este painel manda.
+  function lastCompletePairs(history) {
+    const trimmed = history.slice();
+    if (trimmed.length && trimmed[trimmed.length - 1].role === 'user') trimmed.pop();
+    return trimmed;
+  }
+
+  function escapeHtml(s) {
+    return String(s ?? '').replace(/[&<>"']/g, (m) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' }[m]));
+  }
+  // Escapa primeiro, formata depois: o texto do modelo nunca vira nome de
+  // tag/atributo, só conteúdo textual entre um conjunto fixo de tags que
+  // este código controla -- por isso não precisa de uma lib de sanitização.
+  function markdownToHtml(raw) {
+    const lines = escapeHtml(raw).split('\n');
+    const out = [];
+    let para = [], list = null;
+    const inline = (t) => t.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+    const flushPara = () => { if (para.length) { out.push(`<p>${para.join('<br>')}</p>`); para = []; } };
+    const flushList = () => { if (list) { out.push(`<${list.type}>${list.items.map((li) => `<li>${li}</li>`).join('')}</${list.type}>`); list = null; } };
+
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i];
+
+      if (/^\s*\|.*\|\s*$/.test(line) && /^\s*\|?[\s:-]+\|[\s:|-]*\|?\s*$/.test(lines[i + 1] || '')) {
+        flushPara(); flushList();
+        const header = line.trim().replace(/^\||\|$/g, '').split('|').map((c) => inline(c.trim()));
+        i += 2;
+        const rows = [];
+        while (i < lines.length && /^\s*\|.*\|\s*$/.test(lines[i])) {
+          rows.push(lines[i].trim().replace(/^\||\|$/g, '').split('|').map((c) => inline(c.trim())));
+          i++;
+        }
+        i--;
+        out.push(`<div class="ai-md-table-wrap"><table class="ai-md-table"><thead><tr>${header.map((c) => `<th>${c}</th>`).join('')}</tr></thead><tbody>${rows.map((r) => `<tr>${r.map((c) => `<td>${c}</td>`).join('')}</tr>`).join('')}</tbody></table></div>`);
+        continue;
+      }
+
+      const ul = /^\s*[-*]\s+(.*)$/.exec(line), ol = /^\s*\d+\.\s+(.*)$/.exec(line);
+      if (ul || ol) {
+        flushPara();
+        const type = ul ? 'ul' : 'ol';
+        if (!list || list.type !== type) { flushList(); list = { type, items: [] }; }
+        list.items.push(inline((ul || ol)[1]));
+        continue;
+      }
+
+      if (line.trim() === '') { flushPara(); flushList(); continue; }
+      flushList();
+      para.push(inline(line));
+    }
+    flushPara(); flushList();
+    return out.join('');
+  }
+
+  function render() {
+    // Só em páginas com o shell logado (mesmo sinal que a sidebar usa) --
+    // e nunca em telas marcadas como admin (ex.: data-ai-assistant="off"
+    // no <body>), onde chamar a finances-ai seria no contexto errado de
+    // workspace. commercial-admin.html vive num repo separado (korbuild),
+    // não neste, então esse atributo precisa ser replicado lá também caso
+    // aquela tela carregue este mesmo auth.js.
+    if (!document.querySelector('.sidebar')) return;
+    if (document.body?.dataset?.aiAssistant === 'off') return;
+
+    document.body.insertAdjacentHTML('beforeend', `
+      <button class="ai-fab" type="button" aria-label="KORbuild AI" id="ai-fab"><span>✦ AI</span></button>
+      <div class="ai-panel hidden" id="ai-panel">
+        <div class="ai-panel-head"><strong>KORbuild AI</strong><button type="button" id="ai-panel-close" aria-label="Fechar">✕</button></div>
+        <div class="ai-panel-body" id="ai-panel-body"></div>
+        <form class="ai-panel-form" id="ai-panel-form">
+          <input type="text" id="ai-panel-input" placeholder="Pergunte algo..." autocomplete="off">
+          <button type="submit" id="ai-panel-send" aria-label="Enviar">↑</button>
+        </form>
+      </div>`);
+
+    const fab = document.getElementById('ai-fab');
+    const panel = document.getElementById('ai-panel');
+    const body = document.getElementById('ai-panel-body');
+    const input = document.getElementById('ai-panel-input');
+    const send = document.getElementById('ai-panel-send');
+    let history = loadHistory();
+
+    function bubble(role, text, tone) {
+      const div = document.createElement('div');
+      div.className = `ai-bubble ai-bubble-${role}${tone ? ' ai-bubble-' + tone : ''}`;
+      if (role === 'user') div.textContent = text;
+      else div.innerHTML = markdownToHtml(text);
+      body.appendChild(div);
+      body.scrollTop = body.scrollHeight;
+    }
+    history.forEach((m) => bubble(m.role, m.content));
+
+    fab.addEventListener('click', (e) => {
+      e.stopPropagation();
+      panel.classList.toggle('hidden');
+      if (!panel.classList.contains('hidden')) input.focus();
+    });
+    document.getElementById('ai-panel-close').addEventListener('click', () => panel.classList.add('hidden'));
+    // Clicar fora não fecha de propósito: é um painel de consulta, não um
+    // dropdown -- o usuário pode querer olhar a tela por trás enquanto
+    // conversa. Fecha só pelo FAB ou pelo × explícito.
+    panel.addEventListener('click', (e) => e.stopPropagation());
+
+    document.getElementById('ai-panel-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const text = input.value.trim();
+      if (!text || send.disabled) return;
+
+      history.push({ role: 'user', content: text });
+      history = saveHistory(history);
+      bubble('user', text);
+      input.value = '';
+      input.disabled = true; send.disabled = true;
+      const typing = document.createElement('div');
+      typing.className = 'ai-bubble ai-bubble-assistant ai-bubble-typing';
+      typing.textContent = '···';
+      body.appendChild(typing); body.scrollTop = body.scrollHeight;
+
+      const toSend = lastCompletePairs(history.slice(0, -1)).slice(-API_HISTORY_LIMIT);
+
+      try {
+        const { data, error } = await KORbuildAuth.client.functions.invoke('finances-ai', {
+          body: { message: text, history: toSend },
+        });
+        typing.remove();
+        if (error) {
+          if (error.context?.status === 401) { location.replace('login.html'); return; }
+          let code = 'ai_gateway_error';
+          try { code = (await error.context.json())?.error || code; } catch {}
+          bubble('assistant',
+            code === 'ai_limit_exceeded'
+              ? 'Você atingiu o limite de perguntas deste mês. Volta no próximo ciclo.'
+              : 'Não consegui responder agora. Tenta de novo?',
+            code === 'ai_limit_exceeded' ? 'limit' : 'error');
+          return;
+        }
+        const answer = data?.answer || 'Não consegui responder agora. Tenta de novo?';
+        history.push({ role: 'assistant', content: answer });
+        history = saveHistory(history);
+        bubble('assistant', answer);
+      } catch {
+        typing.remove();
+        bubble('assistant', 'Não consegui responder agora. Tenta de novo?', 'error');
+      } finally {
+        input.disabled = false; send.disabled = false; input.focus();
+      }
+    });
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', render, { once:true }); else render();
+})();
