@@ -177,7 +177,7 @@
   function renderAccessControl() {
     $('access-list').innerHTML = accessControl.map(a => {
       const badgeClass = effectiveBadgeClass(a.effective_status);
-      const canStartTrial = !a.trial_started_at;
+      const canStartTrial = !a.trial_started_at && a.status === 'TRIALING';
       return '<div class="access-card" data-workspace="' + a.workspace_id + '">'
         + '<div class="access-card-head">'
         + '<div class="workspace-name"><strong>' + escapeHtml(a.display_name || 'Workspace sem nome') + '</strong><small>' + escapeHtml(a.country || '') + '</small></div>'
