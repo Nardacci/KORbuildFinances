@@ -73,6 +73,165 @@
     await loadWorkspaces();
   }
 
+  // ---- Preço padrão -------------------------------------------------------
+
+  async function loadPricing() {
+    const { data, error } = await db().rpc('get_commercial_settings');
+    if (error) { showError('Não foi possível carregar o preço padrão.'); return; }
+    const row = (data || [])[0] || {};
+    $('pricing-monthly-price').value = row.monthly_price ?? '';
+    $('pricing-currency').value = row.currency || 'USD';
+  }
+
+  $('pricing-form')?.addEventListener('submit', async e => {
+    e.preventDefault();
+    const raw = $('pricing-monthly-price').value;
+    const { error } = await db().rpc('update_commercial_pricing', {
+      p_monthly_price: raw === '' ? null : Number(raw),
+      p_currency: $('pricing-currency').value
+    });
+    if (error) { showError('Não foi possível salvar o preço padrão.'); return; }
+    await loadPricing();
+  });
+
+  // ---- Instruções de pagamento --------------------------------------------
+
+  async function loadPaymentInstructions() {
+    const { data, error } = await db().rpc('get_payment_instructions');
+    if (error) { showError('Não foi possível carregar as instruções de pagamento.'); return; }
+    const row = (data || [])[0] || {};
+    $('payment-method').value = row.method || 'PIX';
+    $('payment-account-holder').value = row.account_holder || '';
+    $('payment-pix-key').value = row.pix_key || '';
+    $('payment-bank-name').value = row.bank_name || '';
+    $('payment-contact').value = row.payment_contact || '';
+    $('payment-instructions-text').value = row.instructions || '';
+  }
+
+  $('payment-form')?.addEventListener('submit', async e => {
+    e.preventDefault();
+    const { error } = await db().rpc('update_payment_instructions', {
+      p_method: $('payment-method').value,
+      p_account_holder: $('payment-account-holder').value || null,
+      p_pix_key: $('payment-pix-key').value || null,
+      p_bank_name: $('payment-bank-name').value || null,
+      p_payment_contact: $('payment-contact').value || null,
+      p_instructions: $('payment-instructions-text').value || null
+    });
+    if (error) { showError('Não foi possível salvar as instruções de pagamento.'); return; }
+    await loadPaymentInstructions();
+  });
+
+  // ---- Ajuste de preço por workspace ---------------------------------------
+
+  let commercialTerms = [];
+
+  function renderTerms() {
+    $('terms-list').innerHTML = commercialTerms.map(t => {
+      return '<div class="admin-row terms-row" data-workspace="' + t.workspace_id + '">'
+        + '<div class="workspace-name"><strong>' + escapeHtml(t.display_name || 'Workspace sem nome') + '</strong><small>' + escapeHtml(t.country || '') + '</small></div>'
+        + '<label>Ajuste (%)<input class="percent-input" type="number" step="0.01" value="' + (t.price_adjustment_percent ?? 0) + '"></label>'
+        + '<label>Observações<input class="notes-input" type="text" value="' + escapeHtml(t.notes || '') + '"></label>'
+        + '<button class="save-btn save-term-btn" data-id="' + t.workspace_id + '">Salvar</button>'
+        + '</div>';
+    }).join('') || '<p class="empty-note">Nenhum workspace encontrado.</p>';
+
+    document.querySelectorAll('.save-term-btn').forEach(b => b.onclick = () => saveTerm(b.dataset.id));
+  }
+
+  async function loadTerms() {
+    const { data, error } = await db().rpc('get_workspace_commercial_terms');
+    if (error) { showError('Não foi possível carregar os ajustes de preço.'); return; }
+    commercialTerms = data || [];
+    renderTerms();
+  }
+
+  async function saveTerm(workspaceId) {
+    const row = document.querySelector('.terms-row[data-workspace="' + workspaceId + '"]');
+    const percent = Number(row.querySelector('.percent-input').value || 0);
+    const notes = row.querySelector('.notes-input').value || null;
+    const { error } = await db().rpc('update_workspace_commercial_terms', {
+      p_workspace_id: workspaceId, p_price_adjustment_percent: percent, p_notes: notes
+    });
+    if (error) { showError('Não foi possível salvar o ajuste de preço.'); return; }
+    await loadTerms();
+  }
+
+  // ---- Controle de acesso e assinatura ------------------------------------
+
+  let accessControl = [];
+
+  function effectiveBadgeClass(status) {
+    if (status === 'ACTIVE') return 'badge-active';
+    if (status === 'TRIALING') return 'badge-trialing';
+    if (status === 'GRACE_PERIOD') return 'badge-grace';
+    if (status === 'BLOCKED' || status === 'SUSPENDED' || status === 'CANCELLED') return 'badge-blocked';
+    return 'badge-muted';
+  }
+
+  function fmtDate(v) {
+    if (!v) return '—';
+    return new Date(v).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', year: 'numeric' });
+  }
+
+  function renderAccessControl() {
+    $('access-list').innerHTML = accessControl.map(a => {
+      const badgeClass = effectiveBadgeClass(a.effective_status);
+      const canStartTrial = !a.trial_started_at;
+      return '<div class="access-card" data-workspace="' + a.workspace_id + '">'
+        + '<div class="access-card-head">'
+        + '<div class="workspace-name"><strong>' + escapeHtml(a.display_name || 'Workspace sem nome') + '</strong><small>' + escapeHtml(a.country || '') + '</small></div>'
+        + '<span class="effective-badge ' + badgeClass + '">' + escapeHtml(a.effective_status || '—') + '</span>'
+        + '</div>'
+        + '<div class="access-card-grid">'
+        + '<label>Status<select class="status-input">'
+        + ['TRIALING', 'ACTIVE', 'SUSPENDED', 'CANCELLED'].map(s => '<option value="' + s + '"' + (a.status === s ? ' selected' : '') + '>' + s + '</option>').join('')
+        + '</select></label>'
+        + '<label class="toggle-label"><span>Trial habilitado</span><input type="checkbox" class="trial-enabled-input" ' + (a.trial_enabled ? 'checked' : '') + '><i></i></label>'
+        + '<label>Origem da ativação<select class="activation-source-input">'
+        + ['', 'TRIAL', 'MANUAL', 'OTHER'].map(s => '<option value="' + s + '"' + ((a.activation_source || '') === s ? ' selected' : '') + '>' + (s || '—') + '</option>').join('')
+        + '</select></label>'
+        + '<label class="full-width">Motivo<input type="text" class="activation-reason-input" value="' + escapeHtml(a.activation_reason || '') + '"></label>'
+        + '</div>'
+        + '<div class="access-card-meta"><small>Trial: ' + fmtDate(a.trial_started_at) + ' → ' + fmtDate(a.trial_ends_at) + '</small><small>Grace até: ' + fmtDate(a.grace_ends_at) + '</small></div>'
+        + '<div class="access-card-actions">'
+        + (canStartTrial ? '<button class="start-trial-btn" data-id="' + a.workspace_id + '">Iniciar trial</button>' : '')
+        + '<button class="save-access-btn" data-id="' + a.workspace_id + '">Salvar</button>'
+        + '</div>'
+        + '</div>';
+    }).join('') || '<p class="empty-note">Nenhum workspace encontrado.</p>';
+
+    document.querySelectorAll('.save-access-btn').forEach(b => b.onclick = () => saveAccessControl(b.dataset.id));
+    document.querySelectorAll('.start-trial-btn').forEach(b => b.onclick = () => startTrial(b.dataset.id));
+  }
+
+  async function loadAccessControl() {
+    const { data, error } = await db().rpc('get_workspace_access_control');
+    if (error) { showError('Não foi possível carregar o controle de acesso.'); return; }
+    accessControl = data || [];
+    renderAccessControl();
+  }
+
+  async function saveAccessControl(workspaceId) {
+    const card = document.querySelector('.access-card[data-workspace="' + workspaceId + '"]');
+    const status = card.querySelector('.status-input').value;
+    const trialEnabled = card.querySelector('.trial-enabled-input').checked;
+    const activationSource = card.querySelector('.activation-source-input').value || null;
+    const activationReason = card.querySelector('.activation-reason-input').value || null;
+    const { error } = await db().rpc('update_workspace_access_control', {
+      p_workspace_id: workspaceId, p_status: status, p_trial_enabled: trialEnabled,
+      p_activation_source: activationSource, p_activation_reason: activationReason
+    });
+    if (error) { showError('Não foi possível salvar o controle de acesso.'); return; }
+    await loadAccessControl();
+  }
+
+  async function startTrial(workspaceId) {
+    const { error } = await db().rpc('admin_activate_workspace_trial', { p_workspace_id: workspaceId });
+    if (error) { showError(error.message || 'Não foi possível iniciar o trial.'); return; }
+    await loadAccessControl();
+  }
+
   async function load() {
     const session = await KORbuildAuth.session();
     if (!session?.user) { location.replace('index.html'); return; }
@@ -81,7 +240,7 @@
     if (error || !isAdmin) { location.replace('dashboard.html'); return; }
 
     setupHeader(session.user);
-    await loadWorkspaces();
+    await Promise.all([loadWorkspaces(), loadPricing(), loadPaymentInstructions(), loadTerms(), loadAccessControl()]);
   }
 
   load().catch(e => { console.error(e); showError('Não foi possível carregar a área administrativa.'); });

@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>KORbuild Finances · Administração</title>
-<link rel="stylesheet" href="finances-admin.css?v=1.0.0">
+<link rel="stylesheet" href="finances-admin.css?v=1.1.0">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -30,8 +30,8 @@
 
   <section class="intro">
     <div class="eyebrow">SUPER ADMIN — KORBUILD FINANCES</div>
-    <h1>Consumo de IA</h1>
-    <p>Visão agregada e configuração de limites de IA por workspace.</p>
+    <h1>Painel do Super Admin</h1>
+    <p>Consumo de IA, preços, condições comerciais e assinatura por workspace.</p>
   </section>
 
   <section class="summary-grid">
@@ -41,12 +41,44 @@
   </section>
 
   <section class="panel">
-    <div class="panel-heading"><h2>Limites por workspace</h2><p>Ajuste o limite mensal de chamadas de IA e habilite/desabilite por workspace.</p></div>
+    <div class="panel-heading"><h2>Consumo de IA</h2><p>Ajuste o limite mensal de chamadas de IA e habilite/desabilite por workspace.</p></div>
     <div id="workspaces-list"></div>
+  </section>
+
+  <section class="panel">
+    <div class="panel-heading"><h2>Preço padrão</h2><p>Preço mensal padrão do KORbuild Finances.</p></div>
+    <form id="pricing-form" class="settings-form">
+      <label>Preço mensal<input id="pricing-monthly-price" type="number" min="0" step="0.01" placeholder="0.00"></label>
+      <label>Moeda<select id="pricing-currency"><option value="USD">USD</option><option value="EUR">EUR</option><option value="BRL">BRL</option></select></label>
+      <button type="submit">Salvar preço padrão</button>
+    </form>
+  </section>
+
+  <section class="panel">
+    <div class="panel-heading"><h2>Ajuste de preço por workspace</h2><p>Desconto ou acréscimo percentual sobre o preço padrão, por workspace.</p></div>
+    <div id="terms-list"></div>
+  </section>
+
+  <section class="panel">
+    <div class="panel-heading"><h2>Controle de acesso e assinatura</h2><p>Status comercial, trial e ativação manual por workspace.</p></div>
+    <div id="access-list"></div>
+  </section>
+
+  <section class="panel">
+    <div class="panel-heading"><h2>Instruções de pagamento</h2><p>Dados exibidos para pagamento manual (Pix).</p></div>
+    <form id="payment-form" class="settings-form">
+      <label>Método<select id="payment-method"><option value="PIX">PIX</option><option value="BANK_TRANSFER">Transferência bancária</option><option value="OTHER">Outro</option></select></label>
+      <label>Titular da conta<input id="payment-account-holder" type="text"></label>
+      <label>Chave Pix<input id="payment-pix-key" type="text"></label>
+      <label>Banco<input id="payment-bank-name" type="text"></label>
+      <label>Contato para confirmação<input id="payment-contact" type="text"></label>
+      <label class="full-width">Instruções<textarea id="payment-instructions-text"></textarea></label>
+      <button type="submit">Salvar instruções</button>
+    </form>
   </section>
 
   <div id="status" class="status hidden" role="alert"></div>
 </div>
-<script src="finances-admin.js?v=1.0.0"></script>
+<script src="finances-admin.js?v=1.1.0"></script>
 </body>
 </html>
