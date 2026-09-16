@@ -2,10 +2,24 @@ window.KORbuildAuth = (() => {
   const SUPABASE_URL = 'https://nowbohxeqwlddbfnukva.supabase.co';
   const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_OTGYzEhQxckBa_8Xqu4Uog_Dm3RmTtD';
   const client = window.supabase.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
-  async function session() { const { data, error } = await client.auth.getSession(); if (error) throw error; return data.session; }
+  async function session() {
+    const { data, error } = await client.auth.getSession();
+    if (error) throw error;
+    if (!data.session) return null;
+    // getSession() only reads localStorage; a not-yet-expired token from a
+    // deleted user would pass unnoticed. getUser() re-validates against the
+    // Auth server on every call.
+    const { data: userData, error: userError } = await client.auth.getUser();
+    if (userError || !userData?.user) { await logout(); return null; }
+    return data.session;
+  }
   async function login(email, password) { return client.auth.signInWithPassword({ email, password }); }
   async function signup(email, password) { return client.auth.signUp({ email, password }); }
-  async function logout() { return client.auth.signOut(); }
+  async function logout() {
+    localStorage.removeItem('korbuild-finances-wizard-v2');
+    localStorage.removeItem('korbuild-finances-onboarding-complete');
+    return client.auth.signOut();
+  }
   return { client, session, login, signup, logout };
 })();
 
