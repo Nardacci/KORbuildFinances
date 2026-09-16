@@ -122,6 +122,28 @@
     await loadPaymentInstructions();
   });
 
+  // ---- Configuração de trial -----------------------------------------------
+
+  async function loadTrialSettings() {
+    const { data, error } = await db().rpc('get_trial_settings');
+    if (error) { showError('Não foi possível carregar a configuração de trial.'); return; }
+    const row = (data || [])[0] || {};
+    $('trial-days').value = row.trial_days ?? '';
+    $('trial-grace-days').value = row.grace_days ?? '';
+  }
+
+  $('trial-form')?.addEventListener('submit', async e => {
+    e.preventDefault();
+    const trialDays = Number($('trial-days').value || 0);
+    const graceDays = Number($('trial-grace-days').value || 0);
+    const { error } = await db().rpc('update_trial_settings', {
+      p_trial_days: trialDays,
+      p_grace_days: graceDays
+    });
+    if (error) { showError(error.message || 'Não foi possível salvar a configuração de trial.'); return; }
+    await loadTrialSettings();
+  });
+
   // ---- Ajuste de preço por workspace ---------------------------------------
 
   let commercialTerms = [];
@@ -240,7 +262,7 @@
     if (error || !isAdmin) { location.replace('dashboard.html'); return; }
 
     setupHeader(session.user);
-    await Promise.all([loadWorkspaces(), loadPricing(), loadPaymentInstructions(), loadTerms(), loadAccessControl()]);
+    await Promise.all([loadWorkspaces(), loadPricing(), loadTrialSettings(), loadPaymentInstructions(), loadTerms(), loadAccessControl()]);
   }
 
   load().catch(e => { console.error(e); showError('Não foi possível carregar a área administrativa.'); });

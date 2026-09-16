@@ -60,6 +60,15 @@
   </section>
 
   <section class="panel">
+    <div class="panel-heading"><h2>Configuração de trial</h2><p>Duração padrão do período de teste e do prazo de tolerância (grace) antes do bloqueio.</p></div>
+    <form id="trial-form" class="settings-form">
+      <label>Dias de trial<input id="trial-days" type="number" min="1" step="1" placeholder="14"></label>
+      <label>Dias de grace<input id="trial-grace-days" type="number" min="0" step="1" placeholder="6"></label>
+      <button type="submit">Salvar configuração de trial</button>
+    </form>
+  </section>
+
+  <section class="panel">
     <div class="panel-heading"><h2>Controle de acesso e assinatura</h2><p>Status comercial, trial e ativação manual por workspace.</p></div>
     <div id="access-list"></div>
   </section>
