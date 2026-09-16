@@ -23,6 +23,33 @@ window.KORbuildAuth = (() => {
   return { client, session, login, signup, logout };
 })();
 
+/* KORbuild Finances — guard de acesso comercial (BLOCKED -> billing.html) */
+(function accessGuard() {
+  const EXCLUDED_PAGES = ['index.html', 'signup.html', 'workspace.html', 'billing.html', 'finances-admin.html'];
+  const file = (window.location.pathname.split('/').pop() || 'index.html').toLowerCase();
+  if (EXCLUDED_PAGES.includes(file)) return;
+
+  (async () => {
+    try {
+      const session = await KORbuildAuth.session();
+      if (!session?.user) return; // sem sessão: cada página já cuida do redirect pro login
+
+      const { data, error } = await KORbuildAuth.client.schema('finances').rpc('get_workspace_access_status');
+      if (error) { console.error('Verificação de acesso comercial falhou:', error); return; }
+
+      if (data?.access === 'BLOCKED') {
+        window.location.replace('billing.html');
+      }
+    } catch (error) {
+      // Fail-open de propósito: erro técnico (rede, RPC fora do ar) nunca
+      // deve bloquear acesso -- só o RPC respondendo BLOCKED de verdade faz
+      // isso. Mesmo espírito do fail-closed do banner (dashboard.js): lá,
+      // falha = não mostrar nada; aqui, falha = não bloquear nada.
+      console.error('Verificação de acesso comercial falhou:', error);
+    }
+  })();
+})();
+
 /* KORbuild Finances — navegação global padronizada */
 (function standardizeSidebar() {
   function render() {
