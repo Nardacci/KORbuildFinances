@@ -262,7 +262,7 @@
     if (error || !isAdmin) { location.replace('dashboard.html'); return; }
 
     setupHeader(session.user);
-    await Promise.all([loadWorkspaces(), loadPricing(), loadTrialSettings(), loadPaymentInstructions(), loadTerms(), loadAccessControl()]);
+    await Promise.all([loadWorkspaces(), loadPricing(), loadTrialSettings(), loadTerms(), loadAccessControl(), loadPaymentInstructions()]);
   }
 
   load().catch(e => { console.error(e); showError('Não foi possível carregar a área administrativa.'); });
