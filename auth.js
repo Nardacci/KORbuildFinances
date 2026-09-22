@@ -14,7 +14,12 @@ window.KORbuildAuth = (() => {
     return data.session;
   }
   async function login(email, password) { return client.auth.signInWithPassword({ email, password }); }
-  async function signup(email, password) { return client.auth.signUp({ email, password }); }
+  async function signup(email, password) {
+    // O link de confirmação deve retornar ao próprio KORbuild Finances,
+    // independentemente da Site URL global configurada no projeto Supabase.
+    const emailRedirectTo = \`${window.location.origin}/index.html\`;
+    return client.auth.signUp({ email, password, options: { emailRedirectTo } });
+  }
   async function logout() {
     localStorage.removeItem('korbuild-finances-wizard-v2');
     localStorage.removeItem('korbuild-finances-onboarding-complete');
