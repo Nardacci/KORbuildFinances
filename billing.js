@@ -67,19 +67,51 @@
     if (!cta) return;
     const needsPayment = status === 'GRACE_PERIOD' || status === 'BLOCKED';
     cta.classList.toggle('hidden', !needsPayment);
-    cta.textContent = status === 'BLOCKED' ? 'Ver instruções de pagamento →' : 'Regularizar assinatura →';
+    cta.textContent = needsPayment ? 'Assinar com Mercado Pago →' : '';
   }
 
-  function renderPaymentInstructions(instr) {
-    $('payment-method-value').textContent = instr?.method || '—';
-    $('payment-account-holder-value').textContent = instr?.account_holder || '—';
-    $('payment-bank-value').textContent = instr?.bank_name || '—';
-    $('payment-key-value').textContent = instr?.pix_key || '—';
-    $('payment-instructions-text').textContent = instr?.instructions || '';
-    $('payment-contact-value').textContent = instr?.payment_contact ? 'Confirmação: ' + instr.payment_contact : '';
+  async function startMercadoPagoCheckout() {
+    const btn = $('mp-checkout-btn');
+    if (!btn || btn.disabled) return;
+
+    btn.disabled = true;
+    const oldText = btn.textContent;
+    btn.textContent = 'Preparando pagamento…';
+    $('payment-status-text').textContent = '';
+
+    try {
+      const { data, error } = await KORbuildAuth.client.functions.invoke('mp-create-subscription', {
+        body: {},
+      });
+
+      if (error || !data?.init_point) {
+        let code = data?.error || 'checkout_failed';
+        try {
+          if (!data?.error && error?.context) {
+            const body = await error.context.json();
+            code = body?.error || code;
+          }
+        } catch {}
+
+        const messages = {
+          price_not_configured: 'O valor da assinatura ainda não foi configurado para pagamento em BRL.',
+          already_subscribed: 'Já existe uma assinatura ativa ou em atraso para este workspace.',
+          workspace_not_found: 'Não foi possível localizar o workspace desta conta.',
+          unauthorized: 'Sua sessão expirou. Entre novamente.',
+        };
+        throw new Error(messages[code] || 'Não foi possível iniciar o pagamento agora.');
+      }
+
+      window.location.href = data.init_point;
+    } catch (error) {
+      console.error('Mercado Pago checkout:', error);
+      $('payment-status-text').textContent = error.message || 'Não foi possível iniciar o pagamento agora.';
+      btn.disabled = false;
+      btn.textContent = oldText;
+    }
   }
 
-  async function loadPaymentSection(status) {
+  function renderPaymentSection(status) {
     const card = $('payment-card');
     const needsPayment = status === 'GRACE_PERIOD' || status === 'BLOCKED';
     if (!needsPayment) { card.classList.add('hidden'); return; }
@@ -87,15 +119,12 @@
     card.classList.remove('hidden');
     card.classList.toggle('urgent', status === 'BLOCKED');
     $('payment-card-title').textContent = status === 'BLOCKED'
-      ? 'Regularize agora para restaurar o acesso'
+      ? 'Regularize agora com Mercado Pago'
       : 'Regularize sua assinatura';
     $('payment-card-intro').textContent = status === 'BLOCKED'
-      ? 'Seu acesso está bloqueado. Use as informações abaixo para concluir o pagamento e restaurar o acesso.'
-      : 'Seu teste encerrou, mas seu acesso continua por enquanto. Use as informações abaixo para regularizar antes que o acesso seja bloqueado.';
-
-    const { data: instrRows, error: instrError } = await db().rpc('get_own_payment_instructions');
-    if (instrError) { showError('Não foi possível carregar as instruções de pagamento.'); return; }
-    renderPaymentInstructions((instrRows || [])[0] || {});
+      ? 'Seu acesso está bloqueado. Inicie a assinatura para seguir para o checkout seguro do Mercado Pago.'
+      : 'Seu teste encerrou. Inicie a assinatura para seguir para o checkout seguro do Mercado Pago.';
+    $('payment-status-text').textContent = '';
   }
 
   function renderAccess(access) {
@@ -141,6 +170,8 @@
     $('payment-card')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   });
 
+  $('mp-checkout-btn')?.addEventListener('click', startMercadoPagoCheckout);
+
   $('copy-payment-key')?.addEventListener('click', async () => {
     const key = $('payment-key-value').textContent;
     if (!key || key === '—') return;
@@ -163,7 +194,7 @@
     if (error) { showError('Não foi possível carregar o status da sua assinatura.'); return; }
     const status = renderAccess(access);
     updatePlanCta(status);
-    await Promise.all([loadPlanPrice(), loadPaymentSection(status)]);
+    await Promise.all([loadPlanPrice(), renderPaymentSection(status)]);
   }
 
   load().catch(e => { console.error(e); showError('Não foi possível carregar a página de assinatura.'); });
