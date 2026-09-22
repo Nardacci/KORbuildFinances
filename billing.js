@@ -172,18 +172,6 @@
 
   $('mp-checkout-btn')?.addEventListener('click', startMercadoPagoCheckout);
 
-  $('copy-payment-key')?.addEventListener('click', async () => {
-    const key = $('payment-key-value').textContent;
-    if (!key || key === '—') return;
-    try {
-      await navigator.clipboard.writeText(key);
-      const btn = $('copy-payment-key');
-      const old = btn.textContent;
-      btn.textContent = 'Copiado ✓';
-      setTimeout(() => { btn.textContent = old; }, 1800);
-    } catch (e) { console.error(e); }
-  });
-
   async function load() {
     const session = await KORbuildAuth.session();
     if (!session?.user) { location.replace('index.html'); return; }
