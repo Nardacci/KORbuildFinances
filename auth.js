@@ -1,6 +1,4 @@
 window.KORbuildAuth = (() => {
-  const SUPABASE_URL = 'https://nowbohxeqwlddbfnukva.supabase.co';
-  const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_OTGYzEhQxckBa_8Xqu4Uog_Dm3RmTtD';
   const client = window.supabase.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
   async function session() {
     const { data, error } = await client.auth.getSession();
@@ -17,7 +15,7 @@ window.KORbuildAuth = (() => {
   async function signup(email, password) {
     // O link de confirmação deve retornar ao próprio KORbuild Finances,
     // independentemente da Site URL global configurada no projeto Supabase.
-    const emailRedirectTo = \`${window.location.origin}/index.html\`;
+    const emailRedirectTo = `${window.location.origin}/index.html`;
     return client.auth.signUp({ email, password, options: { emailRedirectTo } });
   }
   async function logout() {
