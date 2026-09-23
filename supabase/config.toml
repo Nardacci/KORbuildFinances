@@ -1,4 +1,4 @@
-project_id = "nowbohxeqwlddbfnukva"
+project_id = "qasjgklmivxpisqfhngx"
 
 [functions.compute-insights]
 # pg_net (see 20260914233500_ai_insights_daily_schedule.sql) calls this with
