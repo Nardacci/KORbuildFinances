@@ -12,10 +12,18 @@ window.KORbuildAuth = (() => {
     return data.session;
   }
   async function login(email, password) { return client.auth.signInWithPassword({ email, password }); }
+
+  // O fluxo de confirmação usa uma URL de produção explícita, como no KORbuild.
+  // Assim, o link não depende da origem em que o usuário abriu o app
+  // (localhost, Live Server etc.) nem da Site URL global do Supabase.
+  const APP_BASE_URL = 'https://nardacci.github.io/KORbuildFinances/';
+
+  function getSignupRedirectUrl() {
+    return new URL('index.html', APP_BASE_URL).toString();
+  }
+
   async function signup(email, password) {
-    // O link de confirmação deve retornar ao próprio KORbuild Finances,
-    // independentemente da Site URL global configurada no projeto Supabase.
-    const emailRedirectTo = `${window.location.origin}/index.html`;
+    const emailRedirectTo = getSignupRedirectUrl();
     return client.auth.signUp({ email, password, options: { emailRedirectTo } });
   }
   async function logout() {
