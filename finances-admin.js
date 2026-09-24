@@ -73,8 +73,6 @@
     await loadWorkspaces();
   }
 
-  // ---- Preço padrão -------------------------------------------------------
-
   async function loadPricing() {
     const { data, error } = await db().rpc('get_commercial_settings');
     if (error) { showError('Não foi possível carregar o preço padrão.'); return; }
@@ -88,13 +86,12 @@
     const raw = $('pricing-monthly-price').value;
     const { error } = await db().rpc('update_commercial_pricing', {
       p_monthly_price: raw === '' ? null : Number(raw),
-      p_currency: $('pricing-currency').value
+      p_currency: $('pricing-currency').value,
+      p_monthly_price_brl: null
     });
     if (error) { showError('Não foi possível salvar o preço padrão.'); return; }
     await loadPricing();
   });
-
-  // ---- Instruções de pagamento --------------------------------------------
 
   async function loadPaymentInstructions() {
     const { data, error } = await db().rpc('get_payment_instructions');
@@ -122,8 +119,6 @@
     await loadPaymentInstructions();
   });
 
-  // ---- Configuração de trial -----------------------------------------------
-
   async function loadTrialSettings() {
     const { data, error } = await db().rpc('get_trial_settings');
     if (error) { showError('Não foi possível carregar a configuração de trial.'); return; }
@@ -143,8 +138,6 @@
     if (error) { showError(error.message || 'Não foi possível salvar a configuração de trial.'); return; }
     await loadTrialSettings();
   });
-
-  // ---- Ajuste de preço por workspace ---------------------------------------
 
   let commercialTerms = [];
 
@@ -178,8 +171,6 @@
     if (error) { showError('Não foi possível salvar o ajuste de preço.'); return; }
     await loadTerms();
   }
-
-  // ---- Controle de acesso e assinatura ------------------------------------
 
   let accessControl = [];
 
