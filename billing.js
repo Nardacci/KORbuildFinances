@@ -95,6 +95,7 @@
 
         const messages = {
           price_not_configured: 'O valor da assinatura ainda não foi configurado para pagamento em BRL.',
+          exchange_rate_not_available: 'A cotação para conversão em BRL não está disponível no momento. Tente novamente mais tarde.',
           already_subscribed: 'Já existe uma assinatura ativa ou em atraso para este workspace.',
           workspace_not_found: 'Não foi possível localizar o workspace desta conta.',
           unauthorized: 'Sua sessão expirou. Entre novamente.',
