@@ -14,15 +14,19 @@ function renderTrialBanner(access){
  if(!trialEnabled||!['TRIALING','GRACE_PERIOD'].includes(status)){banner.classList.add('hidden');return}
  const days=Math.max(0,Number(access?.days_remaining||0)),action=$('trial-banner-action');
  banner.classList.remove('hidden','grace');
+ // Conversão antecipada: o CTA pra assinar aparece também durante o
+ // trial ativo, não só depois que ele encerra -- só o texto muda, pra
+ // não confundir quem ainda tem dias de teste sobrando com "regularize".
+ action?.classList.remove('hidden');
  if(status==='GRACE_PERIOD'){
    banner.classList.add('grace');
    setText('trial-banner-title','Seu teste encerrou');
    setText('trial-banner-message','Regularize sua assinatura para não perder o acesso.');
-   action?.classList.remove('hidden');
+   setText('trial-banner-action','Regularizar assinatura →');
  }else{
    setText('trial-banner-title','Seu período de teste está ativo');
    setText('trial-banner-message','Você tem acesso completo durante o teste.');
-   action?.classList.add('hidden');
+   setText('trial-banner-action','Assinar agora →');
  }
  setText('trial-banner-days',days);
  setText('trial-banner-days-label',days===1?'dia restante':'dias restantes');

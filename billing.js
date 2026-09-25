@@ -65,9 +65,12 @@
   function updatePlanCta(status) {
     const cta = $('plan-cta');
     if (!cta) return;
-    const needsPayment = status === 'GRACE_PERIOD' || status === 'BLOCKED';
-    cta.classList.toggle('hidden', !needsPayment);
-    cta.textContent = needsPayment ? 'Assinar com Mercado Pago →' : '';
+    // Conversão antecipada: qualquer status que não seja uma assinatura já
+    // ativa pode assinar agora, inclusive durante o trial -- não só depois
+    // que o acesso já foi restringido (GRACE_PERIOD/BLOCKED).
+    const canSubscribe = status !== 'ACTIVE';
+    cta.classList.toggle('hidden', !canSubscribe);
+    cta.textContent = canSubscribe ? 'Assinar com Mercado Pago →' : '';
   }
 
   async function startMercadoPagoCheckout() {
@@ -114,17 +117,26 @@
 
   function renderPaymentSection(status) {
     const card = $('payment-card');
-    const needsPayment = status === 'GRACE_PERIOD' || status === 'BLOCKED';
-    if (!needsPayment) { card.classList.add('hidden'); return; }
+    // Mesma regra do CTA acima: mostra pra qualquer status que não seja
+    // assinatura já ativa, permitindo assinar durante o próprio trial.
+    const canSubscribe = status !== 'ACTIVE';
+    if (!canSubscribe) { card.classList.add('hidden'); return; }
 
     card.classList.remove('hidden');
     card.classList.toggle('urgent', status === 'BLOCKED');
-    $('payment-card-title').textContent = status === 'BLOCKED'
-      ? 'Regularize agora com Mercado Pago'
-      : 'Regularize sua assinatura';
-    $('payment-card-intro').textContent = status === 'BLOCKED'
-      ? 'Seu acesso está bloqueado. Inicie a assinatura para seguir para o checkout seguro do Mercado Pago.'
-      : 'Seu teste encerrou. Inicie a assinatura para seguir para o checkout seguro do Mercado Pago.';
+    if (status === 'TRIALING') {
+      $('payment-card-title').textContent = 'Assine agora';
+      $('payment-card-intro').textContent = 'Quer garantir seu acesso além do período de teste? Assine agora e siga direto para o checkout seguro do Mercado Pago.';
+    } else if (status === 'BLOCKED') {
+      $('payment-card-title').textContent = 'Regularize agora com Mercado Pago';
+      $('payment-card-intro').textContent = 'Seu acesso está bloqueado. Inicie a assinatura para seguir para o checkout seguro do Mercado Pago.';
+    } else if (status === 'GRACE_PERIOD') {
+      $('payment-card-title').textContent = 'Regularize sua assinatura';
+      $('payment-card-intro').textContent = 'Seu teste encerrou. Inicie a assinatura para seguir para o checkout seguro do Mercado Pago.';
+    } else {
+      $('payment-card-title').textContent = 'Assine o KORbuild Finances';
+      $('payment-card-intro').textContent = 'Inicie sua assinatura para seguir para o checkout seguro do Mercado Pago.';
+    }
     $('payment-status-text').textContent = '';
   }
 
