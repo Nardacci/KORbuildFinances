@@ -130,10 +130,11 @@ Deno.serve(async (req) => {
   if (topic === "payment") {
     const { ok, status, body } = await fetchMp(`/v1/payments/${resourceId}`);
     if (!ok || !body) {
-      await finances.from("payment_events").insert({
+      const { error: logError } = await finances.from("payment_events").insert({
         mp_payment_id: resourceId, event_type: "payment_fetch_failed",
         raw_payload: body ?? { status }, error_message: `MP responded ${status}`,
       });
+      if (logError) console.error("[mp-webhook] payment_events insert failed (payment_fetch_failed)", logError.message);
       return json({ error: "mp_fetch_failed" }, 502);
     }
 
@@ -156,10 +157,11 @@ Deno.serve(async (req) => {
     }
 
     if (!sub) {
-      await finances.from("payment_events").insert({
+      const { error: logError } = await finances.from("payment_events").insert({
         mp_payment_id: resourceId, mp_preapproval_id: preapprovalId, event_type: "unresolved_workspace",
         raw_payload: body, error_message: "Could not map payment to a payment_subscriptions row",
       });
+      if (logError) console.error("[mp-webhook] payment_events insert failed (unresolved_workspace/payment)", logError.message);
       return json({ received: true, warning: "unresolved_workspace" });
     }
 
@@ -188,9 +190,13 @@ Deno.serve(async (req) => {
           updatePayload.current_period_end = nextPaymentDate;
         }
 
-        await finances.from("payment_subscriptions")
+        const { error: updateError } = await finances.from("payment_subscriptions")
           .update(updatePayload)
           .eq("workspace_id", sub.workspace_id);
+        if (updateError) {
+          console.error("[mp-webhook] payment_subscriptions update failed (payment approved)", updateError.message);
+          return json({ error: "local_write_failed" }, 500);
+        }
       }
     } else if (paymentStatus === "rejected") {
       // Only stamp past_due_since on the FIRST failure of a cycle -- don't
@@ -198,36 +204,43 @@ Deno.serve(async (req) => {
       // A canceled subscription is terminal for access purposes and must
       // not be moved back into past_due by a late notification.
       if (sub.status !== "past_due" && sub.status !== "canceled") {
-        await finances.from("payment_subscriptions")
+        const { error: updateError } = await finances.from("payment_subscriptions")
           .update({ status: "past_due", past_due_since: now, updated_at: now })
           .eq("workspace_id", sub.workspace_id);
+        if (updateError) {
+          console.error("[mp-webhook] payment_subscriptions update failed (payment rejected)", updateError.message);
+          return json({ error: "local_write_failed" }, 500);
+        }
       }
     }
 
-    await finances.from("payment_events").insert({
+    const { error: eventLogError } = await finances.from("payment_events").insert({
       workspace_id: sub.workspace_id, mp_preapproval_id: preapprovalId, mp_payment_id: resourceId,
       event_type: `payment_${paymentStatus}`, raw_payload: body, processed_at: now,
     });
+    if (eventLogError) console.error("[mp-webhook] payment_events insert failed (payment_" + paymentStatus + ")", eventLogError.message);
     return json({ received: true });
   }
 
   if (topic === "preapproval" || topic === "subscription_preapproval") {
     const { ok, status, body } = await fetchMp(`/preapproval/${resourceId}`);
     if (!ok || !body) {
-      await finances.from("payment_events").insert({
+      const { error: logError } = await finances.from("payment_events").insert({
         mp_preapproval_id: resourceId, event_type: "preapproval_fetch_failed",
         raw_payload: body ?? { status }, error_message: `MP responded ${status}`,
       });
+      if (logError) console.error("[mp-webhook] payment_events insert failed (preapproval_fetch_failed)", logError.message);
       return json({ error: "mp_fetch_failed" }, 502);
     }
 
     const { data: sub } = await finances.from("payment_subscriptions").select("workspace_id, status")
       .eq("mp_preapproval_id", resourceId).maybeSingle();
     if (!sub) {
-      await finances.from("payment_events").insert({
+      const { error: logError } = await finances.from("payment_events").insert({
         mp_preapproval_id: resourceId, event_type: "unresolved_workspace",
         raw_payload: body, error_message: "No payment_subscriptions row for this preapproval_id",
       });
+      if (logError) console.error("[mp-webhook] payment_events insert failed (unresolved_workspace/preapproval)", logError.message);
       return json({ received: true, warning: "unresolved_workspace" });
     }
 
@@ -244,12 +257,16 @@ Deno.serve(async (req) => {
     // transition. Do not let a later preapproval notification overwrite
     // payment-driven past_due state.
     if (mpStatus === "authorized" && sub.status === "pending") {
-      await finances.from("payment_subscriptions").update({
+      const { error: updateError } = await finances.from("payment_subscriptions").update({
         status: "active",
         current_period_start: recurringStartDate ?? now,
         current_period_end: nextPaymentDate,
         updated_at: now,
       }).eq("workspace_id", sub.workspace_id);
+      if (updateError) {
+        console.error("[mp-webhook] payment_subscriptions update failed (preapproval authorized)", updateError.message);
+        return json({ error: "local_write_failed" }, 500);
+      }
     } else if (mpStatus === "cancelled" && sub.status !== "canceled") {
       // Preserve an already-known period end. If it was not populated yet,
       // use Mercado Pago's next_payment_date when available so cancellation
@@ -259,35 +276,49 @@ Deno.serve(async (req) => {
         updated_at: now,
       };
 
-      const { data: currentSub } = await finances.from("payment_subscriptions")
+      const { data: currentSub, error: currentSubError } = await finances.from("payment_subscriptions")
         .select("current_period_end")
         .eq("workspace_id", sub.workspace_id)
         .maybeSingle();
+      if (currentSubError) {
+        console.error("[mp-webhook] payment_subscriptions select failed (preapproval cancelled)", currentSubError.message);
+        return json({ error: "local_read_failed" }, 500);
+      }
 
       if (!currentSub?.current_period_end && nextPaymentDate) {
         updatePayload.current_period_end = nextPaymentDate;
       }
 
-      await finances.from("payment_subscriptions")
+      const { error: updateError } = await finances.from("payment_subscriptions")
         .update(updatePayload)
         .eq("workspace_id", sub.workspace_id);
+      if (updateError) {
+        console.error("[mp-webhook] payment_subscriptions update failed (preapproval cancelled)", updateError.message);
+        return json({ error: "local_write_failed" }, 500);
+      }
     } else if (mpStatus === "paused") {
-      await finances.from("payment_subscriptions")
+      const { error: updateError } = await finances.from("payment_subscriptions")
         .update({ status: "paused", updated_at: now })
         .eq("workspace_id", sub.workspace_id);
+      if (updateError) {
+        console.error("[mp-webhook] payment_subscriptions update failed (preapproval paused)", updateError.message);
+        return json({ error: "local_write_failed" }, 500);
+      }
     }
 
-    await finances.from("payment_events").insert({
+    const { error: eventLogError } = await finances.from("payment_events").insert({
       workspace_id: sub.workspace_id, mp_preapproval_id: resourceId,
       event_type: `preapproval_${mpStatus}`, raw_payload: body, processed_at: now,
     });
+    if (eventLogError) console.error("[mp-webhook] payment_events insert failed (preapproval_" + mpStatus + ")", eventLogError.message);
     return json({ received: true });
   }
 
   // Unrecognized topic -- log and acknowledge (200) so MP doesn't retry
   // forever on something we deliberately don't handle.
-  await finances.from("payment_events").insert({
+  const { error: unhandledLogError } = await finances.from("payment_events").insert({
     event_type: `unhandled_topic_${topic || "unknown"}`, raw_payload: notification,
   });
+  if (unhandledLogError) console.error("[mp-webhook] payment_events insert failed (unhandled_topic)", unhandledLogError.message);
   return json({ received: true, warning: "unhandled_topic" });
 });

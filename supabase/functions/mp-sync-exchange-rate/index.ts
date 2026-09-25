@@ -81,18 +81,23 @@ Deno.serve(async (req) => {
   const finances = admin.schema("finances");
 
   const results: Record<string, { rate: number; date: string } | null> = {};
+  const writeErrors: Record<string, string> = {};
   for (const currency of ["USD", "EUR"] as const) {
     const found = await fetchWithFallback(currency);
     results[currency] = found;
     if (found) {
-      await finances.from("exchange_rates").upsert(
+      const { error } = await finances.from("exchange_rates").upsert(
         { currency, rate_to_brl: found.rate, rate_date: found.date },
         { onConflict: "currency,rate_date" },
       );
+      if (error) writeErrors[currency] = error.message;
     }
   }
 
   const failed = Object.entries(results).filter(([, v]) => v === null).map(([k]) => k);
+  if (Object.keys(writeErrors).length) {
+    return json({ synced: results, error: "write_failed", write_errors: writeErrors }, 500);
+  }
   if (failed.length) return json({ synced: results, warning: `no PTAX data found in last ${MAX_LOOKBACK_DAYS} days for: ${failed.join(", ")}` }, 207);
   return json({ synced: results });
 });
