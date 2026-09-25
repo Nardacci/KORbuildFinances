@@ -4,3 +4,8 @@ project_id = "qasjgklmivxpisqfhngx"
 # pg_net (see 20260914233500_ai_insights_daily_schedule.sql) calls this with
 # no Supabase user JWT -- auth is the x-cron-secret header instead.
 verify_jwt = false
+
+[functions.mp-sync-exchange-rate]
+# pg_net calls this with no Supabase user JWT -- auth is the x-cron-secret
+# header instead, same pattern as compute-insights.
+verify_jwt = false
