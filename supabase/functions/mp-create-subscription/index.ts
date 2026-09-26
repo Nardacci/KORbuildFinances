@@ -127,12 +127,13 @@ Deno.serve(async (req) => {
 
   const mpBody = await mpResponse.json().catch(() => null);
   if (!mpResponse.ok || !mpBody?.id || !mpBody?.init_point) {
-    await finances.from("payment_events").insert({
+    const { error: logError } = await finances.from("payment_events").insert({
       workspace_id: workspaceId,
       event_type: "subscription_create_failed",
       raw_payload: mpBody ?? { status: mpResponse.status },
       error_message: `MP responded ${mpResponse.status}`,
     });
+    if (logError) console.error("[mp-create-subscription] payment_events insert failed (subscription_create_failed)", logError.message);
     return json({ error: "mp_create_failed", status: mpResponse.status, details: mpBody }, 502);
   }
 
@@ -148,13 +149,14 @@ Deno.serve(async (req) => {
   }, { onConflict: "workspace_id" });
   if (upsertError) return json({ error: "local_write_failed" }, 500);
 
-  await finances.from("payment_events").insert({
+  const { error: eventLogError } = await finances.from("payment_events").insert({
     workspace_id: workspaceId,
     mp_preapproval_id: mpBody.id,
     event_type: "subscription_created",
     raw_payload: mpBody,
     processed_at: new Date().toISOString(),
   });
+  if (eventLogError) console.error("[mp-create-subscription] payment_events insert failed (subscription_created)", eventLogError.message);
 
   return json({ init_point: mpBody.init_point, preapproval_id: mpBody.id, amount_brl: amountBrl });
 });
