@@ -157,6 +157,11 @@ Deno.serve(async (req) => {
         external_reference: workspaceId,
         payer_email: user.email,
         back_url: `${APP_BASE_URL}/billing.html`,
+        // Per Mercado Pago's own docs, a preapproval's notification_url is
+        // the documented way to receive webhook events for it -- the panel
+        // Webhook config alone was confirmed (2026-09-25/26) to not deliver
+        // real payment/preapproval notifications for this integration.
+        notification_url: "https://qasjgklmivxpisqfhngx.supabase.co/functions/v1/mp-webhook",
         auto_recurring: {
           frequency: 1,
           frequency_type: "months",
