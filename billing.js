@@ -62,15 +62,16 @@
     renderPlanPrice((data || [])[0] || {});
   }
 
-  function updatePlanCta(status) {
+  function updatePlanCta() {
+    // #plan-cta só existia pra rolar a tela até #payment-card -- que fica
+    // logo abaixo, sem distância nenhuma pra rolar, e já tem seu próprio
+    // botão (#mp-checkout-btn) com o texto certo por status. Mostrar os
+    // dois ao mesmo tempo duplicava o CTA de assinar; #payment-card é o
+    // único que continua ativo.
     const cta = $('plan-cta');
     if (!cta) return;
-    // Conversão antecipada: qualquer status que não seja uma assinatura já
-    // ativa pode assinar agora, inclusive durante o trial -- não só depois
-    // que o acesso já foi restringido (GRACE_PERIOD/BLOCKED).
-    const canSubscribe = status !== 'ACTIVE';
-    cta.classList.toggle('hidden', !canSubscribe);
-    cta.textContent = canSubscribe ? 'Assinar com Mercado Pago →' : '';
+    cta.classList.add('hidden');
+    cta.textContent = '';
   }
 
   async function startMercadoPagoCheckout() {
@@ -179,10 +180,6 @@
     el.classList.remove('hidden');
   }
 
-  $('plan-cta')?.addEventListener('click', () => {
-    $('payment-card')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-  });
-
   $('mp-checkout-btn')?.addEventListener('click', startMercadoPagoCheckout);
 
   async function load() {
@@ -194,7 +191,7 @@
     const { data: access, error } = await db().rpc('get_workspace_access_status');
     if (error) { showError('Não foi possível carregar o status da sua assinatura.'); return; }
     const status = renderAccess(access);
-    updatePlanCta(status);
+    updatePlanCta();
     await Promise.all([loadPlanPrice(), renderPaymentSection(status)]);
   }
 
