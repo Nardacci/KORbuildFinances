@@ -48,11 +48,55 @@ Deno.serve(async (req) => {
 
   const { data: existing } = await finances
     .from("payment_subscriptions")
-    .select("status")
+    .select("status, mp_preapproval_id, amount_brl")
     .eq("workspace_id", workspaceId)
     .maybeSingle();
   if (existing && (existing.status === "active" || existing.status === "past_due")) {
     return json({ error: "already_subscribed" }, 409);
+  }
+
+  // A 'pending' row means a checkout was already started for this workspace.
+  // Never fire a second preapproval on top of it -- check Mercado Pago's own
+  // record for the existing one first (a double click / retry must not
+  // create a second real charge schedule).
+  if (existing && existing.status === "pending" && existing.mp_preapproval_id) {
+    let checkResponse: Response;
+    try {
+      checkResponse = await fetch(`https://api.mercadopago.com/preapproval/${existing.mp_preapproval_id}`, {
+        headers: { Authorization: `Bearer ${MP_ACCESS_TOKEN}` },
+      });
+    } catch (error) {
+      return json({ error: "mp_lookup_failed", message: error instanceof Error ? error.message : String(error) }, 502);
+    }
+    const checkBody = await checkResponse.json().catch(() => null);
+    if (!checkResponse.ok || !checkBody) {
+      return json({ error: "mp_lookup_failed" }, 502);
+    }
+
+    if (checkBody.status === "authorized") {
+      // Already paid at Mercado Pago -- our webhook just hasn't caught up
+      // yet. Same outcome as active/past_due: never create a second one.
+      return json({ error: "already_subscribed" }, 409);
+    }
+    if (checkBody.status === "pending") {
+      if (!checkBody.init_point) return json({ error: "mp_lookup_failed" }, 502);
+      const { error: reuseLogError } = await finances.from("payment_events").insert({
+        workspace_id: workspaceId,
+        mp_preapproval_id: existing.mp_preapproval_id,
+        event_type: "subscription_reused",
+        raw_payload: checkBody,
+        processed_at: new Date().toISOString(),
+      });
+      if (reuseLogError) console.error("[mp-create-subscription] payment_events insert failed (subscription_reused)", reuseLogError.message);
+      return json({
+        init_point: checkBody.init_point,
+        preapproval_id: existing.mp_preapproval_id,
+        amount_brl: existing.amount_brl,
+        reused: true,
+      });
+    }
+    // Anything else (cancelled, rejected, paused) is terminal at Mercado
+    // Pago -- fall through and create a fresh preapproval below.
   }
 
   const { data: pricing } = await finances
