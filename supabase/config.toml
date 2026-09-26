@@ -9,3 +9,8 @@ verify_jwt = false
 # pg_net calls this with no Supabase user JWT -- auth is the x-cron-secret
 # header instead, same pattern as compute-insights.
 verify_jwt = false
+
+[functions.mp-reconcile]
+# pg_net calls this with no Supabase user JWT -- auth is the x-cron-secret
+# header instead, same pattern as compute-insights.
+verify_jwt = false
