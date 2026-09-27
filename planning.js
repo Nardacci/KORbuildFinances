@@ -22,6 +22,8 @@ function monthsToGoal(present, monthly, rate, target) {
 }
 const RATE_SCENARIOS=[0,0.5,1,1.5,2];
 const formatMonthsToGoal=m=>{if(m<=0)return'Meta já alcançada';if(!isFinite(m)||m>600)return'Não bate a meta nesse prazo';const total=Math.round(m),years=Math.floor(total/12),months=total%12,parts=[];if(years)parts.push(years+(years===1?' ano':' anos'));if(months||!years)parts.push(months+(months===1?' mês':' meses'));return parts.join(' e ')};
+const classify=arr=>arr.every(Boolean)?'all':arr.every(v=>!v)?'none':'mixed';
+const NO_CONTRIBUTION_TEXT='Nenhuma contribuição informada — adicione um aporte pra ver a projeção';
 function header(u,name){set('user-name',name);set('user-email',u.email||'');set('user-avatar',initials(name));set('menu-full-name',name);set('menu-full-email',u.email||'');set('menu-avatar',initials(name));$('user-menu-btn')?.addEventListener('click',e=>{e.stopPropagation();$('user-menu')?.classList.toggle('hidden')});document.addEventListener('click',()=> $('user-menu')?.classList.add('hidden'));$('logout')?.addEventListener('click',async()=>{await KORbuildAuth.logout();location.replace('index.html')});$('language-toggle')?.addEventListener('click',()=>{localStorage.setItem('korbuild-language',(localStorage.getItem('korbuild-language')||'pt-BR')==='pt-BR'?'en-US':'pt-BR');location.reload()})}
 function projectionChart(current,target,planned,real,months,moneyFn){const el=$('projection-chart');if(!el)return;const n=Math.min(Math.max(months,6),60),w=760,h=220,pL=54,pR=12,pT=15,pB=30,max=Math.max(target,current,planned,real,1),pointsFor=v=>Array.from({length:n+1},(_,i)=>{const t=i/n,val=v(i);return{x:pL+t*(w-pL-pR),y:pT+(max-val)/max*(h-pT-pB)}}),planPts=pointsFor(i=>futureValue(current,planned,i,0)),realPts=pointsFor(i=>futureValue(current,real,i,0)),path=pts=>pts.map((p,i)=>(i?'L':'M')+p.x.toFixed(1)+' '+p.y.toFixed(1)).join(' '),area=`M ${planPts[0].x} ${h-pB} L ${planPts.map(p=>`${p.x} ${p.y}`).join(' L ')} L ${planPts[planPts.length-1].x} ${h-pB} Z`,grid=[0,.5,1].map(t=>{const y=pT+t*(h-pT-pB),v=max*(1-t);return `<line x1="${pL}" y1="${y}" x2="${w-pR}" y2="${y}" class="p-grid"/><text x="${pL-8}" y="${y+3}" text-anchor="end">${moneyFn(v)}</text>`}).join('');el.innerHTML=`<svg viewBox="0 0 ${w} ${h}" role="img" aria-label="Projeção do plano versus realidade">${grid}<line x1="${pL}" y1="${pT+(max-target)/max*(h-pT-pB)}" x2="${w-pR}" y2="${pT+(max-target)/max*(h-pT-pB)}" class="p-target"/><path d="${area}" class="p-plan-area"/><path d="${path(planPts)}" class="p-plan"/><path d="${path(realPts)}" class="p-real"/><circle cx="${planPts[n].x}" cy="${planPts[n].y}" r="4" fill="#15935d"/><circle cx="${realPts[n].x}" cy="${realPts[n].y}" r="4" fill="#2474e8"/><text x="${pL}" y="${h-8}">Hoje</text><text x="${w-pR}" y="${h-8}" text-anchor="end">Prazo</text></svg>`}
 async function load(){
@@ -45,7 +47,7 @@ async function load(){
  const balance=ar.filter(a=>code(a.currency)===primary).reduce((s,a)=>s+Number(a.opening_balance||0),0),investedValue=pos.filter(p=>code(p.currency)===primary).reduce((s,p)=>s+Number(p.position_value||0),0),currentWealth=goal.include_initial_wealth?Number(goal.initial_wealth||0):balance+investedValue;
  const monthlyPlan=Number(plan?.projected_monthly_contribution||0),rate=Number(plan?.projected_monthly_rate||0),years=Number(goal.target_years||0),months=Math.max(0,Math.round(years*12)),target=Number(goal.target_amount||0);
  const income6=inc.filter(x=>x.status==='realized'&&x.receipt_date>=sixStart&&x.receipt_date<end&&code(x.currency)===primary).reduce((s,x)=>s+Number(x.amount||0),0),expense6=ex.filter(x=>x.status==='realized'&&x.paid_date>=sixStart&&x.paid_date<end&&code(x.currency)===primary).reduce((s,x)=>s+Number(x.amount||0),0),invest6=itx.filter(x=>['contribution','adjustment'].includes(x.transaction_type)&&x.transaction_date>=sixStart&&x.transaction_date<end&&code(x.currency)===primary).reduce((s,x)=>s+Number(x.amount||0),0);
- const capacity=Math.max(0,(income6-expense6)/6),realInvestment=Math.max(0,invest6/6),required=requiredMonthly(currentWealth,target,months,rate),projected=futureValue(currentWealth,monthlyPlan,months,rate),realProjected=futureValue(currentWealth,realInvestment,months,rate),remaining=Math.max(0,target-currentWealth),progress=target?Math.min(100,Math.max(0,currentWealth/target*100)):0;
+ const capacity=Math.max(0,(income6-expense6)/6),realInvestment=Math.max(0,invest6/6),projected=futureValue(currentWealth,monthlyPlan,months,rate),realProjected=futureValue(currentWealth,realInvestment,months,rate),remaining=Math.max(0,target-currentWealth),progress=target?Math.min(100,Math.max(0,currentWealth/target*100)):0;
  const incomeMonth=inc.filter(x=>x.status==='realized'&&x.receipt_date>=start&&x.receipt_date<end&&code(x.currency)===primary).reduce((s,x)=>s+Number(x.amount||0),0),expenseMonth=ex.filter(x=>x.status==='realized'&&x.paid_date>=start&&x.paid_date<end&&code(x.currency)===primary).reduce((s,x)=>s+Number(x.amount||0),0),investMonth=itx.filter(x=>['contribution','adjustment'].includes(x.transaction_type)&&x.transaction_date>=start&&x.transaction_date<end&&code(x.currency)===primary).reduce((s,x)=>s+Number(x.amount||0),0);
 
  // REALIDADE: janela móvel de até 12 meses. Mês sem dados não entra no divisor.
@@ -60,16 +62,39 @@ async function load(){
  const realityBase=realityCount===0?'Base da análise: nenhum mês com movimentações realizadas.':realityCount===1?'Base da análise: 1 mês com dados realizados.':`Base da análise: ${realityCount} meses com dados realizados, dentro de uma janela móvel de até 12 meses.`;
  const moneyFn=v=>money(v,primary);
  const rateScenarios=RATE_SCENARIOS.map(r=>({rate:r,monthsToGoal:monthsToGoal(currentWealth,monthlyPlan,r,target),valueAtDeadline:futureValue(currentWealth,monthlyPlan,months,r),required:requiredMonthly(currentWealth,target,months,r)}));
+ const allInfinite=rateScenarios.every(sc=>!isFinite(sc.monthsToGoal));
+ const reachClass=classify(rateScenarios.map(sc=>sc.monthsToGoal<=months));
+ const capClass=classify(rateScenarios.map(sc=>capacity>=sc.required));
+ const realityCapClass=classify(rateScenarios.map(sc=>realityCapacity>=sc.required));
+ const required0=rateScenarios[0].required,required2=rateScenarios[rateScenarios.length-1].required;
  set('goal-name',goal.name||'Meu sonho');set('goal-description',`Meta de ${moneyFn(target)} em ${years||0} anos.`);set('target',moneyFn(target,primary));set('current-wealth',moneyFn(currentWealth,primary));set('remaining',moneyFn(remaining,primary));set('progress',progress.toLocaleString('pt-BR',{maximumFractionDigits:1})+'%');
  set('real-capacity',moneyFn(realityCapacity));set('real-investment',moneyFn(realityInvestment));set('real-capacity-label',realityCount===1?'Capacidade do mês':'Capacidade média de acumulação');set('real-investment-label',realityCount===1?'Investimento do mês':'Investimento médio');set('reality-period',realityPeriod);set('reality-base',realityBase);
  const scenariosBody=$('rate-scenarios-body');if(scenariosBody)scenariosBody.innerHTML=rateScenarios.map(sc=>`<tr><td>${sc.rate.toLocaleString('pt-BR',{minimumFractionDigits:1,maximumFractionDigits:1})}% a.m.</td><td>${formatMonthsToGoal(sc.monthsToGoal)}</td><td>${moneyFn(sc.valueAtDeadline)}</td><td>${moneyFn(sc.required)}</td></tr>`).join('');
  set('projected',moneyFn(projected));set('real-projected',moneyFn(realProjected));set('projected-gap',realProjected>=target?'Objetivo alcançado pelo ritmo real':'Faltariam '+moneyFn(Math.max(0,target-realProjected))+' no ritmo real');
  set('month-income',moneyFn(incomeMonth));set('month-expenses',moneyFn(expenseMonth));set('month-invested',moneyFn(investMonth));
  const bar=$('progress-bar');if(bar)bar.style.width=progress+'%';
- const status=$('plan-status'),onTrack=capacity>=required&&required>0;if(status){status.textContent=onTrack?'Você está no caminho':'Precisamos ajustar o ritmo';status.className='plan-status '+(onTrack?'on-track':'attention')}
- const badge=$('projection-badge'),planOnTrack=projected>=target;if(badge){badge.textContent=planOnTrack?'Plano alcança a meta':'Plano ainda não alcança a meta';badge.className='projection-badge '+(planOnTrack?'on-track':'attention')}
- set('reality-note',realityCount===0?'Ainda não há movimentações realizadas suficientes para medir sua capacidade financeira.':realityCapacity>=required&&required>0?'Sua capacidade financeira está acima do ritmo necessário para a meta.':'Sua capacidade financeira ainda está abaixo do ritmo necessário para a meta.');
- set('next-title',capacity>=required?'Continue e acompanhe':'O plano precisa de atenção');set('next-text',capacity>=required?'Os dados atuais sustentam o ritmo necessário. O próximo fechamento patrimonial será importante para confirmar se essa trajetória continua.':'Há uma diferença entre sua capacidade média e o ritmo necessário. O sistema não muda sua meta: ele mostra o que precisa ser ajustado na realidade.');set('next-highlight',capacity>=required?`Margem atual: ${moneyFn(capacity-required)} por mês.`:`Ajuste necessário: ${moneyFn(required-capacity)} por mês.`);
+ const status=$('plan-status');
+ if(status){
+  const text=allInfinite?NO_CONTRIBUTION_TEXT:capClass==='all'?'Você está no caminho em qualquer cenário simulado':capClass==='none'?'Precisamos ajustar o ritmo':'Depende do rendimento — ajuste pode ser necessário';
+  const cls=allInfinite?'neutral':capClass==='all'?'on-track':capClass==='none'?'attention':'mixed';
+  status.textContent=text;status.className='plan-status '+cls;
+ }
+ const badge=$('projection-badge');
+ if(badge){
+  const text=allInfinite?NO_CONTRIBUTION_TEXT:reachClass==='all'?'Plano alcança a meta em todos os cenários':reachClass==='none'?'Plano não alcança a meta em nenhum cenário simulado':'Depende do rendimento simulado';
+  const cls=allInfinite?'neutral':reachClass==='all'?'on-track':reachClass==='none'?'attention':'mixed';
+  badge.textContent=text;badge.className='projection-badge '+cls;
+ }
+ set('reality-note',realityCount===0?'Ainda não há movimentações realizadas suficientes para medir sua capacidade financeira.':allInfinite?NO_CONTRIBUTION_TEXT:realityCapClass==='all'?'Sua capacidade financeira está acima do ritmo necessário em qualquer cenário simulado.':realityCapClass==='none'?'Sua capacidade financeira ainda está abaixo do ritmo necessário, mesmo no cenário mais otimista simulado.':'Depende do rendimento obtido — sua capacidade pode ou não ser suficiente, dependendo da taxa de retorno.');
+ if(allInfinite){
+  set('next-title','Adicione um aporte');set('next-text',NO_CONTRIBUTION_TEXT);set('next-highlight','—');
+ }else if(capClass==='all'){
+  set('next-title','Continue e acompanhe');set('next-text','Mesmo no cenário mais conservador (0% a.m.), sua capacidade sustenta o ritmo necessário.');set('next-highlight',`Margem no cenário mais conservador: ${moneyFn(capacity-required0)} por mês.`);
+ }else if(capClass==='none'){
+  set('next-title','O plano precisa de atenção');set('next-text','Mesmo no cenário mais otimista simulado (2% a.m.), há uma diferença entre sua capacidade e o ritmo necessário.');set('next-highlight',`Ajuste necessário mesmo no melhor cenário: ${moneyFn(required2-capacity)} por mês.`);
+ }else{
+  set('next-title','O resultado depende do rendimento');set('next-text','Dependendo do rendimento obtido, sua capacidade pode ou não sustentar o ritmo necessário — veja os cenários na tabela acima.');set('next-highlight',`Falta ${moneyFn(required0-capacity)}/mês no cenário conservador; sobra ${moneyFn(capacity-required2)}/mês no otimista.`);
+ }
  projectionChart(currentWealth,target,monthlyPlan,realInvestment,months,moneyFn);
 }
 load().catch(e=>{console.error(e);const st=$('status');if(st){st.textContent='Não foi possível carregar o planejamento.';st.classList.remove('hidden')}});
