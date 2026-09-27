@@ -183,7 +183,7 @@ window.KORbuildAuth = (() => {
     if (document.body?.dataset?.aiAssistant === 'off') return;
 
     document.body.insertAdjacentHTML('beforeend', `
-      <button class="ai-fab" type="button" aria-label="Kora" id="ai-fab"><span>✦ AI</span></button>
+      <button class="ai-fab" type="button" aria-label="Kora" id="ai-fab"><span>✦</span><span>Kora</span></button>
       <div class="ai-panel hidden" id="ai-panel">
         <div class="ai-panel-head"><strong>Kora</strong><button type="button" id="ai-panel-close" aria-label="Fechar">✕</button></div>
         <div class="ai-panel-body" id="ai-panel-body"></div>
