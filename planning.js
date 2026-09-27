@@ -21,7 +21,7 @@ function monthsToGoal(present, monthly, rate, target) {
   return Math.log(x) / Math.log(1 + r);
 }
 const RATE_SCENARIOS=[0,0.5,1,1.5,2];
-const INFLATION_BY_CURRENCY={BRL:0.045,USD:0.025,EUR:0.025};
+const INFLATION_BY_CURRENCY={BRL:0.045,USD:0.025,EUR:0.025,GBP:0.03};
 const formatMonthsToGoal=m=>{if(m<=0)return'Meta já alcançada';if(!isFinite(m)||m>600)return'Não bate a meta nesse prazo';const total=Math.round(m),years=Math.floor(total/12),months=total%12,parts=[];if(years)parts.push(years+(years===1?' ano':' anos'));if(months||!years)parts.push(months+(months===1?' mês':' meses'));return parts.join(' e ')};
 const classify=arr=>arr.every(Boolean)?'all':arr.every(v=>!v)?'none':'mixed';
 const NO_CONTRIBUTION_TEXT='Nenhuma contribuição informada — adicione um aporte pra ver a projeção';
