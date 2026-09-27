@@ -156,7 +156,11 @@ Deno.serve(async (req) => {
         reason: "KORbuild Finances - assinatura mensal",
         external_reference: workspaceId,
         payer_email: user.email,
-        back_url: `${APP_BASE_URL}/billing.html`,
+        // mp_return=1 is OUR OWN marker, not Mercado Pago's -- billing.js
+        // uses its presence to know the page load is a return from
+        // checkout and force an immediate reconciliation (mp-reconcile-self)
+        // instead of waiting for the next mp-reconcile cron tick.
+        back_url: `${APP_BASE_URL}/billing.html?mp_return=1`,
         // Per Mercado Pago's own docs, a preapproval's notification_url is
         // the documented way to receive webhook events for it -- the panel
         // Webhook config alone was confirmed (2026-09-25/26) to not deliver

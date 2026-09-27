@@ -267,6 +267,25 @@
     if (!session?.user) { location.replace('index.html'); return; }
 
     setupHeader(session.user);
+
+    // mp_return=1 is OUR OWN marker on back_url (set by mp-create-subscription),
+    // not something Mercado Pago adds -- its presence means this load is a
+    // return from checkout. Force an immediate reconciliation instead of
+    // waiting for the next mp-reconcile cron tick (up to 15 minutes); the
+    // cron remains the safety net for anyone who closes the tab before
+    // getting back here.
+    if (new URLSearchParams(location.search).has('mp_return')) {
+      history.replaceState(null, '', location.pathname);
+      setStatusCard({ cardClass: '', icon: '◷', eyebrow: 'CONFIRMANDO', title: 'Confirmando seu pagamento...', message: 'Estamos verificando o status da sua assinatura com o Mercado Pago.', metric: '—', metricLabel: '' });
+      try {
+        await KORbuildAuth.client.functions.invoke('mp-reconcile-self', { body: {} });
+      } catch (error) {
+        // Best-effort -- never blocks the page: the batch cron will catch
+        // up on this same subscription within 15 minutes regardless.
+        console.error('mp-reconcile-self:', error);
+      }
+    }
+
     await refresh();
   }
 
