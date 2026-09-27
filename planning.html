@@ -33,8 +33,10 @@
 <div class="reality-note" id="reality-note">Analisando seus dados reais...</div>
 </section>
 
-<section class="planning-panel rate-scenarios-panel"><div class="panel-title"><div><div class="section-label">CENÁRIOS DE RENDIMENTO</div><h3>Quanto tempo até a meta, em cada taxa?</h3><p>Mesmo aporte mensal do plano, taxas diferentes. Sem inflação e sem imposto de renda considerados ainda.</p></div></div>
-<table class="rate-scenarios-table"><thead><tr><th>Taxa</th><th>Tempo até a meta</th><th>Valor acumulado no prazo original</th><th>Necessário pra bater no prazo</th></tr></thead><tbody id="rate-scenarios-body"></tbody></table>
+<section class="planning-panel rate-scenarios-panel"><div class="panel-title"><div><div class="section-label">CENÁRIOS DE RENDIMENTO</div><h3>Quanto tempo até a meta, em cada taxa?</h3><p>Mesmo aporte mensal do plano, taxas diferentes.</p></div></div>
+<label class="purchasing-power-toggle"><input type="checkbox" id="show-purchasing-power"><span>Mostrar poder de compra e imposto</span></label>
+<small id="purchasing-power-note" class="purchasing-power-note hidden">Estimativa simplificada — não considera todas as regras fiscais aplicáveis ao seu caso. Não é recomendação de investimento.</small>
+<table class="rate-scenarios-table"><thead id="rate-scenarios-head"><tr><th>Taxa</th><th>Tempo até a meta</th><th>Valor acumulado no prazo original</th><th>Necessário pra bater no prazo</th></tr></thead><tbody id="rate-scenarios-body"></tbody></table>
 </section>
 
 <section class="planning-panel projection-panel"><div class="panel-title"><div><div class="section-label">PLANO × REALIDADE</div><h3>Se continuar nesse ritmo, onde você chega?</h3><p>Uma leitura simples da distância entre o ritmo necessário e o que seus dados mostram hoje.</p></div><span id="projection-badge" class="projection-badge">Analisando</span></div>

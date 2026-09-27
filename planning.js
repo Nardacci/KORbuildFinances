@@ -21,6 +21,7 @@ function monthsToGoal(present, monthly, rate, target) {
   return Math.log(x) / Math.log(1 + r);
 }
 const RATE_SCENARIOS=[0,0.5,1,1.5,2];
+const INFLATION_BY_CURRENCY={BRL:0.045,USD:0.025,EUR:0.025};
 const formatMonthsToGoal=m=>{if(m<=0)return'Meta já alcançada';if(!isFinite(m)||m>600)return'Não bate a meta nesse prazo';const total=Math.round(m),years=Math.floor(total/12),months=total%12,parts=[];if(years)parts.push(years+(years===1?' ano':' anos'));if(months||!years)parts.push(months+(months===1?' mês':' meses'));return parts.join(' e ')};
 const classify=arr=>arr.every(Boolean)?'all':arr.every(v=>!v)?'none':'mixed';
 const NO_CONTRIBUTION_TEXT='Nenhuma contribuição informada — adicione um aporte pra ver a projeção';
@@ -69,7 +70,30 @@ async function load(){
  const required0=rateScenarios[0].required,required2=rateScenarios[rateScenarios.length-1].required;
  set('goal-name',goal.name||'Meu sonho');set('goal-description',`Meta de ${moneyFn(target)} em ${years||0} anos.`);set('target',moneyFn(target,primary));set('current-wealth',moneyFn(currentWealth,primary));set('remaining',moneyFn(remaining,primary));set('progress',progress.toLocaleString('pt-BR',{maximumFractionDigits:1})+'%');
  set('real-capacity',moneyFn(realityCapacity));set('real-investment',moneyFn(realityInvestment));set('real-capacity-label',realityCount===1?'Capacidade do mês':'Capacidade média de acumulação');set('real-investment-label',realityCount===1?'Investimento do mês':'Investimento médio');set('reality-period',realityPeriod);set('reality-base',realityBase);
- const scenariosBody=$('rate-scenarios-body');if(scenariosBody)scenariosBody.innerHTML=rateScenarios.map(sc=>`<tr><td>${sc.rate.toLocaleString('pt-BR',{minimumFractionDigits:1,maximumFractionDigits:1})}% a.m.</td><td>${formatMonthsToGoal(sc.monthsToGoal)}</td><td>${moneyFn(sc.valueAtDeadline)}</td><td>${moneyFn(sc.required)}</td></tr>`).join('');
+ function renderScenariosTable(){
+  const showExtra=$('show-purchasing-power')?.checked,isBRL=primary==='BRL';
+  const head=$('rate-scenarios-head'),body=$('rate-scenarios-body');
+  if(!head||!body)return;
+  const headCells=['Taxa','Tempo até a meta','Valor acumulado no prazo original','Necessário pra bater no prazo'];
+  if(showExtra){headCells.push('Poder de compra hoje');if(isBRL)headCells.push('Valor líquido (após IR)')}
+  head.innerHTML='<tr>'+headCells.map(h=>`<th>${h}</th>`).join('')+'</tr>';
+  const inflationRate=INFLATION_BY_CURRENCY[primary]??0.025,years=months/12,days=months*30;
+  const bracket=days<=180?0.225:days<=360?0.20:days<=720?0.175:0.15,totalContributed=monthlyPlan*months;
+  body.innerHTML=rateScenarios.map(sc=>{
+   let row=`<td>${sc.rate.toLocaleString('pt-BR',{minimumFractionDigits:1,maximumFractionDigits:1})}% a.m.</td><td>${formatMonthsToGoal(sc.monthsToGoal)}</td><td>${moneyFn(sc.valueAtDeadline)}</td><td>${moneyFn(sc.required)}</td>`;
+   if(showExtra){
+    const realValue=sc.valueAtDeadline/Math.pow(1+inflationRate,years);
+    row+=`<td>${moneyFn(realValue)}</td>`;
+    if(isBRL){
+     const gain=Math.max(0,sc.valueAtDeadline-currentWealth-totalContributed),netValue=sc.valueAtDeadline-gain*bracket;
+     row+=`<td>${moneyFn(netValue)}</td>`;
+    }
+   }
+   return `<tr>${row}</tr>`;
+  }).join('');
+ }
+ renderScenariosTable();
+ $('show-purchasing-power')?.addEventListener('change',()=>{renderScenariosTable();$('purchasing-power-note')?.classList.toggle('hidden',!$('show-purchasing-power')?.checked)});
  set('projected',moneyFn(projected));set('real-projected',moneyFn(realProjected));set('projected-gap',realProjected>=target?'Objetivo alcançado pelo ritmo real':'Faltariam '+moneyFn(Math.max(0,target-realProjected))+' no ritmo real');
  set('month-income',moneyFn(incomeMonth));set('month-expenses',moneyFn(expenseMonth));set('month-invested',moneyFn(investMonth));
  const bar=$('progress-bar');if(bar)bar.style.width=progress+'%';
