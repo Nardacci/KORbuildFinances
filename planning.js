@@ -8,6 +8,20 @@ const set=(id,v)=>{const e=$(id);if(e)e.textContent=v};
 const monthBounds=d=>{const s=new Date(d.getFullYear(),d.getMonth(),1),e=new Date(d.getFullYear(),d.getMonth()+1,1);return[s.toISOString().slice(0,10),e.toISOString().slice(0,10)]};
 const futureValue=(present,monthly,n,rate)=>{const r=rate/100;return !n?present:present*Math.pow(1+r,n)+monthly*(r?((Math.pow(1+r,n)-1)/r):n)};
 const requiredMonthly=(present,target,n,rate)=>{if(target<=present||n<=0)return 0;const r=rate/100,futurePresent=present*Math.pow(1+r,n),gap=target-futurePresent;return r?Math.max(0,gap*r/(Math.pow(1+r,n)-1)):gap/n};
+function monthsToGoal(present, monthly, rate, target) {
+  if (present >= target) return 0;
+  const r = rate / 100;
+  if (r === 0) {
+    if (monthly <= 0) return Infinity;
+    return (target - present) / monthly;
+  }
+  if (monthly === 0 && present === 0) return Infinity;
+  const x = (target + monthly / r) / (present + monthly / r);
+  if (!(x > 0)) return Infinity; // guarda contra caso degenerado
+  return Math.log(x) / Math.log(1 + r);
+}
+const RATE_SCENARIOS=[0,0.5,1,1.5,2];
+const formatMonthsToGoal=m=>{if(m<=0)return'Meta já alcançada';if(!isFinite(m)||m>600)return'Não bate a meta nesse prazo';const total=Math.round(m),years=Math.floor(total/12),months=total%12,parts=[];if(years)parts.push(years+(years===1?' ano':' anos'));if(months||!years)parts.push(months+(months===1?' mês':' meses'));return parts.join(' e ')};
 function header(u,name){set('user-name',name);set('user-email',u.email||'');set('user-avatar',initials(name));set('menu-full-name',name);set('menu-full-email',u.email||'');set('menu-avatar',initials(name));$('user-menu-btn')?.addEventListener('click',e=>{e.stopPropagation();$('user-menu')?.classList.toggle('hidden')});document.addEventListener('click',()=> $('user-menu')?.classList.add('hidden'));$('logout')?.addEventListener('click',async()=>{await KORbuildAuth.logout();location.replace('index.html')});$('language-toggle')?.addEventListener('click',()=>{localStorage.setItem('korbuild-language',(localStorage.getItem('korbuild-language')||'pt-BR')==='pt-BR'?'en-US':'pt-BR');location.reload()})}
 function projectionChart(current,target,planned,real,months,moneyFn){const el=$('projection-chart');if(!el)return;const n=Math.min(Math.max(months,6),60),w=760,h=220,pL=54,pR=12,pT=15,pB=30,max=Math.max(target,current,planned,real,1),pointsFor=v=>Array.from({length:n+1},(_,i)=>{const t=i/n,val=v(i);return{x:pL+t*(w-pL-pR),y:pT+(max-val)/max*(h-pT-pB)}}),planPts=pointsFor(i=>futureValue(current,planned,i,0)),realPts=pointsFor(i=>futureValue(current,real,i,0)),path=pts=>pts.map((p,i)=>(i?'L':'M')+p.x.toFixed(1)+' '+p.y.toFixed(1)).join(' '),area=`M ${planPts[0].x} ${h-pB} L ${planPts.map(p=>`${p.x} ${p.y}`).join(' L ')} L ${planPts[planPts.length-1].x} ${h-pB} Z`,grid=[0,.5,1].map(t=>{const y=pT+t*(h-pT-pB),v=max*(1-t);return `<line x1="${pL}" y1="${y}" x2="${w-pR}" y2="${y}" class="p-grid"/><text x="${pL-8}" y="${y+3}" text-anchor="end">${moneyFn(v)}</text>`}).join('');el.innerHTML=`<svg viewBox="0 0 ${w} ${h}" role="img" aria-label="Projeção do plano versus realidade">${grid}<line x1="${pL}" y1="${pT+(max-target)/max*(h-pT-pB)}" x2="${w-pR}" y2="${pT+(max-target)/max*(h-pT-pB)}" class="p-target"/><path d="${area}" class="p-plan-area"/><path d="${path(planPts)}" class="p-plan"/><path d="${path(realPts)}" class="p-real"/><circle cx="${planPts[n].x}" cy="${planPts[n].y}" r="4" fill="#15935d"/><circle cx="${realPts[n].x}" cy="${realPts[n].y}" r="4" fill="#2474e8"/><text x="${pL}" y="${h-8}">Hoje</text><text x="${w-pR}" y="${h-8}" text-anchor="end">Prazo</text></svg>`}
 async function load(){
@@ -44,10 +58,12 @@ async function load(){
  const realityCount=realityRows.length, realityCapacity=realityCount?Math.max(0,realityRows.reduce((s,x)=>s+x.capacity,0)/realityCount):0, realityInvestment=realityCount?Math.max(0,realityRows.reduce((s,x)=>s+x.investment,0)/realityCount):0;
  const realityPeriod=realityCount===0?'Sem histórico':realityCount===1?'1 mês disponível':`Últimos ${Math.min(realityCount,12)} meses`;
  const realityBase=realityCount===0?'Base da análise: nenhum mês com movimentações realizadas.':realityCount===1?'Base da análise: 1 mês com dados realizados.':`Base da análise: ${realityCount} meses com dados realizados, dentro de uma janela móvel de até 12 meses.`;
- const moneyFn=v=>money(v,primary),rateText=rate.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2})+'% a.m.';
+ const moneyFn=v=>money(v,primary);
+ const rateScenarios=RATE_SCENARIOS.map(r=>({rate:r,monthsToGoal:monthsToGoal(currentWealth,monthlyPlan,r,target),valueAtDeadline:futureValue(currentWealth,monthlyPlan,months,r)}));
  set('goal-name',goal.name||'Meu sonho');set('goal-description',`Meta de ${moneyFn(target)} em ${years||0} anos.`);set('target',moneyFn(target,primary));set('current-wealth',moneyFn(currentWealth,primary));set('remaining',moneyFn(remaining,primary));set('progress',progress.toLocaleString('pt-BR',{maximumFractionDigits:1})+'%');
  set('real-capacity',moneyFn(realityCapacity));set('real-investment',moneyFn(realityInvestment));set('real-capacity-label',realityCount===1?'Capacidade do mês':'Capacidade média de acumulação');set('real-investment-label',realityCount===1?'Investimento do mês':'Investimento médio');set('reality-period',realityPeriod);set('reality-base',realityBase);
- set('monthly-plan',moneyFn(monthlyPlan));set('required-monthly',moneyFn(required));set('required-gap',(monthlyPlan>=required?'+ ':'− ')+moneyFn(Math.abs(monthlyPlan-required)));set('plan-rate',rateText);
+ set('required-monthly',moneyFn(required));set('required-gap',(monthlyPlan>=required?'+ ':'− ')+moneyFn(Math.abs(monthlyPlan-required)));
+ const scenariosBody=$('rate-scenarios-body');if(scenariosBody)scenariosBody.innerHTML=rateScenarios.map(sc=>`<tr><td>${sc.rate.toLocaleString('pt-BR',{minimumFractionDigits:1,maximumFractionDigits:1})}% a.m.</td><td>${formatMonthsToGoal(sc.monthsToGoal)}</td><td>${moneyFn(sc.valueAtDeadline)}</td></tr>`).join('');
  set('projected',moneyFn(projected));set('real-projected',moneyFn(realProjected));set('projected-gap',realProjected>=target?'Objetivo alcançado pelo ritmo real':'Faltariam '+moneyFn(Math.max(0,target-realProjected))+' no ritmo real');
  set('month-income',moneyFn(incomeMonth));set('month-expenses',moneyFn(expenseMonth));set('month-invested',moneyFn(investMonth));
  const bar=$('progress-bar');if(bar)bar.style.width=progress+'%';
