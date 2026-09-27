@@ -98,6 +98,8 @@ test.describe('Wizard — fluxo completo de onboarding', () => {
     await page.fill('#wGoalTarget', '100000');
     await page.fill('#wGoalYears', '5');
     await page.fill('#wStartDate', '2026-01-01');
+    await expect(page.locator('#saveBtn')).toBeDisabled();
+    await page.fill('#rPlanContribution', '1500');
     await expect(page.locator('#saveBtn')).toBeEnabled();
     await page.click('#saveBtn');
 
