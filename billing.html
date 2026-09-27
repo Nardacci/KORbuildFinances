@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>KORbuild Finances · Assinatura</title>
-<link rel="stylesheet" href="billing.css?v=1.2.0">
+<link rel="stylesheet" href="billing.css?v=1.3.0">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -76,6 +76,15 @@
     <p id="payment-status-text" class="payment-contact" role="status"></p>
   </section>
 
+  <section id="manage-card" class="payment-card hidden">
+    <div class="payment-card-head">
+      <strong>Gerenciar assinatura</strong>
+      <p>Você pode cancelar sua assinatura mensal a qualquer momento. Seu acesso continua até o fim do período já pago.</p>
+    </div>
+    <button id="cancel-subscription-btn" class="plan-cta secondary" type="button">Cancelar assinatura</button>
+    <p id="cancel-status-text" class="payment-contact" role="status"></p>
+  </section>
+
   <section class="info-card">
     <small>PAGAMENTO SEGURO</small>
     <div class="info-step"><b>1</b><div><strong>Inicie sua assinatura</strong><p>O KORbuild Finances cria sua assinatura mensal no Mercado Pago.</p></div></div>
@@ -90,6 +99,6 @@
 
   <div id="status" class="error-note hidden" role="alert"></div>
 </div>
-<script src="billing.js?v=1.2.2"></script>
+<script src="billing.js?v=1.3.0"></script>
 </body>
 </html>

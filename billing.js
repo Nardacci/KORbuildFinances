@@ -157,6 +157,19 @@
     } else if (status === 'SUSPENDED' || status === 'CANCELLED') {
       $('billing-subtitle').textContent = 'Seu acesso está bloqueado.';
       setStatusCard({ cardClass: 'blocked', icon: '🔒', eyebrow: status === 'SUSPENDED' ? 'ASSINATURA SUSPENSA' : 'ASSINATURA CANCELADA', title: 'Seu acesso está bloqueado', message: 'Regularize sua assinatura para restaurar o acesso.', metric: '—', metricLabel: 'bloqueado' });
+    } else if (status === 'PAST_DUE') {
+      const allowed = access?.access === 'ALLOWED';
+      $('billing-subtitle').textContent = allowed ? 'Não conseguimos confirmar seu último pagamento.' : 'Seu acesso está bloqueado.';
+      setStatusCard(allowed
+        ? { cardClass: 'grace', icon: '!', eyebrow: 'PAGAMENTO EM ATRASO · PERÍODO DE TOLERÂNCIA', title: 'Não conseguimos confirmar seu último pagamento', message: 'Regularize sua assinatura para não perder o acesso.', metric: days, metricLabel: days === 1 ? 'dia restante' : 'dias restantes' }
+        : { cardClass: 'blocked', icon: '🔒', eyebrow: 'PAGAMENTO EM ATRASO', title: 'Seu acesso está bloqueado', message: 'Regularize sua assinatura para restaurar o acesso.', metric: '—', metricLabel: 'bloqueado' });
+    } else if (status === 'CANCELED') {
+      const allowed = access?.access === 'ALLOWED';
+      const until = access?.current_period_end ? new Date(access.current_period_end).toLocaleDateString('pt-BR') : null;
+      $('billing-subtitle').textContent = allowed ? 'Sua assinatura foi cancelada.' : 'Seu acesso está bloqueado.';
+      setStatusCard(allowed
+        ? { cardClass: 'grace', icon: '◷', eyebrow: 'ASSINATURA CANCELADA', title: 'Sua assinatura foi cancelada', message: until ? `Seu acesso continua até ${until}.` : 'Seu acesso continua até o fim do período já pago.', metric: '—', metricLabel: '' }
+        : { cardClass: 'blocked', icon: '🔒', eyebrow: 'ASSINATURA CANCELADA', title: 'Seu acesso está bloqueado', message: 'Assine novamente para restaurar o acesso.', metric: '—', metricLabel: 'bloqueado' });
     } else if (status === 'BLOCKED') {
       $('billing-subtitle').textContent = 'Seu teste expirou.';
       setStatusCard({ cardClass: 'blocked', icon: '🔒', eyebrow: 'TESTE EXPIRADO', title: 'Seu acesso está bloqueado', message: 'Regularize sua assinatura para restaurar o acesso.', metric: '0', metricLabel: 'dias restantes' });
@@ -173,6 +186,63 @@
     return status;
   }
 
+  function renderManageSection(status) {
+    const card = $('manage-card');
+    // Only a workspace with a real, currently-billing Mercado Pago
+    // subscription (active or past_due) has anything to cancel -- trial,
+    // grace period and already-canceled workspaces don't.
+    const canCancel = status === 'ACTIVE' || status === 'PAST_DUE';
+    card.classList.toggle('hidden', !canCancel);
+    if (canCancel) $('cancel-status-text').textContent = '';
+  }
+
+  async function cancelSubscription() {
+    const btn = $('cancel-subscription-btn');
+    if (!btn || btn.disabled) return;
+
+    const confirmed = window.confirm('Tem certeza que deseja cancelar sua assinatura? Seu acesso continua até o fim do período já pago.');
+    if (!confirmed) return;
+
+    btn.disabled = true;
+    const oldText = btn.textContent;
+    btn.textContent = 'Cancelando…';
+    $('cancel-status-text').textContent = '';
+
+    try {
+      const { data, error } = await KORbuildAuth.client.functions.invoke('mp-cancel-subscription', {
+        body: {},
+      });
+
+      if (error || data?.error) {
+        let code = data?.error;
+        try {
+          if (!code && error?.context) {
+            const body = await error.context.json();
+            code = body?.error;
+          }
+        } catch {}
+
+        const messages = {
+          no_active_subscription: 'Não encontramos uma assinatura ativa para cancelar.',
+          already_canceled: 'Sua assinatura já está cancelada.',
+          unauthorized: 'Sua sessão expirou. Entre novamente.',
+        };
+        throw new Error(messages[code] || 'Não foi possível cancelar a assinatura agora.');
+      }
+
+      const until = data?.current_period_end ? new Date(data.current_period_end).toLocaleDateString('pt-BR') : null;
+      $('cancel-status-text').textContent = until
+        ? `Assinatura cancelada. Seu acesso continua até ${until}.`
+        : 'Assinatura cancelada.';
+      await refresh();
+    } catch (error) {
+      console.error('Cancelar assinatura:', error);
+      $('cancel-status-text').textContent = error.message || 'Não foi possível cancelar a assinatura agora.';
+      btn.disabled = false;
+      btn.textContent = oldText;
+    }
+  }
+
   function showError(msg) {
     const el = $('status');
     if (!el) return;
@@ -181,18 +251,23 @@
   }
 
   $('mp-checkout-btn')?.addEventListener('click', startMercadoPagoCheckout);
+  $('cancel-subscription-btn')?.addEventListener('click', cancelSubscription);
+
+  async function refresh() {
+    const { data: access, error } = await db().rpc('get_workspace_access_status');
+    if (error) { showError('Não foi possível carregar o status da sua assinatura.'); return; }
+    const status = renderAccess(access);
+    updatePlanCta();
+    renderManageSection(status);
+    await Promise.all([loadPlanPrice(), renderPaymentSection(status)]);
+  }
 
   async function load() {
     const session = await KORbuildAuth.session();
     if (!session?.user) { location.replace('index.html'); return; }
 
     setupHeader(session.user);
-
-    const { data: access, error } = await db().rpc('get_workspace_access_status');
-    if (error) { showError('Não foi possível carregar o status da sua assinatura.'); return; }
-    const status = renderAccess(access);
-    updatePlanCta();
-    await Promise.all([loadPlanPrice(), renderPaymentSection(status)]);
+    await refresh();
   }
 
   load().catch(e => { console.error(e); showError('Não foi possível carregar a página de assinatura.'); });
