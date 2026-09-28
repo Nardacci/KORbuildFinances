@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>KORbuild Finances — Workspace Setup</title><link rel="stylesheet" href="styles.css"><link rel="stylesheet" href="css/wizard.css">
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>KORbuild Finances — Workspace Setup</title><link rel="stylesheet" href="styles.css"><link rel="stylesheet" href="css/wizard.css?v=1.0.0">
 </head><body><div id="financeWizard" class="wizard-page">
 <header class="wizard-header"><div class="wizard-brand"><div class="brand-mark">K</div><div><strong>KORbuild Finances</strong><span>Seu patrimônio. Seu futuro. Em construção.</span></div></div><button id="logoutBtn" class="help-button" type="button">Sair</button></header>
 <div class="wizard-layout"><main class="wizard-main"><div class="wizard-card"><nav class="wizard-topbar" aria-label="Progresso da configuração"><ol class="topbar-steps"><li class="wizard-step" data-step-link="1">Você</li><li class="wizard-step" data-step-link="2">Sua primeira conta</li><li class="wizard-step" data-step-link="3">Sua primeira receita</li><li class="wizard-step" data-step-link="4">Seu objetivo</li><li class="wizard-step" data-step-link="5">Seu primeiro plano</li></ol><div class="topbar-line"><i id="topbarFill"></i></div></nav><div class="wizard-content">
@@ -23,4 +23,4 @@
 </div>
 </section>
 </div><footer class="wizard-footer"><button id="backBtn" class="btn btn-ghost" type="button">← Voltar</button><div class="footer-right"><span class="save-status">Seus dados são salvos neste dispositivo.</span><button id="saveBtn" class="btn btn-outline" type="button">Salvar e continuar →</button><button id="confirmBtn" class="btn btn-solid" type="button">Começar minha jornada →</button></div></footer></div></main></div></div>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="supabase-config.js"></script><script src="auth.js"></script><script>document.getElementById('logoutBtn').addEventListener('click',async()=>{try{await KORbuildAuth.logout();window.location.replace('login.html')}catch(e){console.error(e)}});(async()=>{try{await KORbuildAuth.session()||window.location.replace('login.html')}catch(e){window.location.replace('login.html')}})();</script><script src="app.js"></script></body></html>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="supabase-config.js?v=1.2.0"></script><script src="auth.js?v=2.1.0"></script><script>document.getElementById('logoutBtn').addEventListener('click',async()=>{try{await KORbuildAuth.logout();window.location.replace('login.html')}catch(e){console.error(e)}});(async()=>{try{await KORbuildAuth.session()||window.location.replace('login.html')}catch(e){window.location.replace('login.html')}})();</script><script src="app.js?v=1.0.0"></script></body></html>
