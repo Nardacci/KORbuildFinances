@@ -18,6 +18,8 @@ const $=id=>document.getElementById(id);
 const db=()=>KORbuildAuth.client.schema('finances');
 const brl=v=>Number(v||0).toLocaleString('pt-BR',{style:'currency',currency:'BRL',maximumFractionDigits:0});
 const code=v=>String(v||'').trim().split(/\s+—\s+/)[0].toUpperCase();
+const CURRENCY_SYMBOL={USD:'US$',EUR:'€',GBP:'£',BRL:'R$'};
+function updateCurrencyPrefix(){const symbol=CURRENCY_SYMBOL[code(wizardState.currency)]||'R$';['wGoalTargetCurrency','rPlanContributionCurrency'].forEach(id=>{const e=$(id);if(e)e.textContent=symbol});}
 function saveLocal(){wizardState.step=step;localStorage.setItem(STORAGE_KEY,JSON.stringify(wizardState));}
 function collectWizard(){const values={name:'wName',country:'wCountry',currency:'wCurrency',account:'wAccount',accountType:'wAccountType',accountCurrency:'wAccountCurrency',balance:'wBalance',incomeDesc:'wIncomeDesc',incomeCategory:'wIncomeCategory',income:'wIncome',frequency:'wFrequency',incomeDay:'wIncomeDay',goalName:'wGoalName',goalTarget:'wGoalTarget',goalYears:'wGoalYears',startDate:'wStartDate',initial:'wInitial',monthlyContribution:'rPlanContribution'};Object.entries(values).forEach(([key,id])=>{const el=$(id);if(el)wizardState[key]=el.type==='number'?(Number(el.value)||0):el.value;});saveLocal();}
 function draftData(){const data={...wizardState};delete data.step;return data;}
@@ -121,10 +123,10 @@ function renderStep(){
   document.querySelectorAll('.wizard-step').forEach(x=>{const n=Number(x.dataset.stepLink);x.classList.toggle('active',n===step);x.classList.toggle('done',mode==='onboarding'?n<step:n!==step);});
   $('topbarFill').style.width=(step*20)+'%';
   $('backBtn').textContent='← Voltar';
+  updateCurrencyPrefix();
   if(mode==='review'){
     $('step5-onboarding').classList.add('hidden');
     $('step5-review').classList.toggle('hidden',step!==5);
-    $('step4-review-plan').classList.toggle('hidden',step!==4);
     if(step===4){updateEstimatedDate();updateWarningEl($('rContributionWarning'),Number($('rPlanContribution').value||0));}
     if(step===5)renderReviewSummary();
     const reviewing=step===5;
@@ -136,7 +138,6 @@ function renderStep(){
   }else{
     $('step5-onboarding').classList.remove('hidden');
     $('step5-review').classList.add('hidden');
-    $('step4-review-plan').classList.toggle('hidden',step!==4);
     $('backBtn').disabled=step===1;
     const isLast=step===5;
     $('saveBtn').textContent='Salvar e continuar →';

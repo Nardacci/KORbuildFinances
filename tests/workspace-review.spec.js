@@ -87,7 +87,7 @@ test.describe('Wizard — modo revisão pós-onboarding', () => {
     await waitForReviewReady(page);
     await page.click('#rvEditGoal');
     await expect(page.locator('.step[data-step="4"]')).toHaveClass(/step-active/);
-    await expect(page.locator('#step4-review-plan')).not.toHaveClass(/hidden/);
+    await expect(page.locator('#rPlanContribution')).toBeVisible();
 
     // aporte extremo: aviso deve aparecer antes mesmo de salvar
     await page.fill('#rPlanContribution', '999999999');
