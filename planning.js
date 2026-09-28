@@ -25,6 +25,67 @@ const INFLATION_BY_CURRENCY={BRL:0.045,USD:0.025,EUR:0.025,GBP:0.03};
 const formatMonthsToGoal=m=>{if(m<=0)return'Meta já alcançada';if(!isFinite(m)||m>600)return'Não bate a meta nesse prazo';const total=Math.round(m),years=Math.floor(total/12),months=total%12,parts=[];if(years)parts.push(years+(years===1?' ano':' anos'));if(months||!years)parts.push(months+(months===1?' mês':' meses'));return parts.join(' e ')};
 const classify=arr=>arr.every(Boolean)?'all':arr.every(v=>!v)?'none':'mixed';
 const NO_CONTRIBUTION_TEXT='Nenhuma contribuição informada — adicione um aporte pra ver a projeção';
+const SCENARIO_COLORS={0:'#64748b',0.5:'#2474e8',1:'#15935d',1.5:'#e08a12',2:'#b83b8f'};
+const REALITY_COLOR='#111827';
+const fmtPct=(v,d=1)=>v.toLocaleString('pt-BR',{minimumFractionDigits:d,maximumFractionDigits:d});
+const annualEquivalent=r=>(Math.pow(1+r/100,12)-1)*100;
+// Gráfico dos cenários de rendimento (SVG à mão). Eixo Y dinâmico, meta/prazo, cruzamentos e rótulos finais sem sobreposição.
+function drawScenarioChart(o){
+ const el=o.el;if(!el)return;
+ const {visible,scenarios,currentWealth,monthlyPlan,months,years,target,rate,realInvestment,primary,moneyFn}=o;
+ if(!(months>0)||!(target>0)){el.innerHTML='';return}
+ const W=Math.max(300,Math.round(el.clientWidth||760)),H=W<520?250:300,pL=66,pR=84,pT=14,pB=32,pw=W-pL-pR,ph=H-pT-pB;
+ let cf=null;try{cf=new Intl.NumberFormat('pt-BR',{style:'currency',currency:primary,notation:'compact',maximumFractionDigits:1})}catch{}
+ const compact=v=>cf?cf.format(v):moneyFn(v),tw=s=>s.length*5.3,f1=n=>n.toFixed(1);
+ const step=Math.max(1,Math.ceil(months/120)),idx=[];for(let i=0;i<months;i+=step)idx.push(i);idx.push(months);
+ const curves=scenarios.filter(sc=>visible.has(sc.rate)).map(sc=>({sc,rate:sc.rate,color:SCENARIO_COLORS[sc.rate]||'#64748b',vals:idx.map(i=>futureValue(currentWealth,monthlyPlan,i,sc.rate))}));
+ if(realInvestment>0)curves.push({real:true,color:REALITY_COLOR,vals:idx.map(i=>futureValue(currentWealth,realInvestment,i,rate))});
+ const good=curves.filter(c=>c.vals.every(Number.isFinite));
+ const maxFinal=Math.max(0,...good.map(c=>c.vals[c.vals.length-1])),ymax=Math.max(maxFinal*1.1,target*1.15);
+ const X=i=>pL+i/months*pw,Y=v=>pT+(1-v/ymax)*ph,pt=(i,v)=>f1(X(i))+' '+f1(Y(v));
+ const seg=a=>a.map((p,k)=>(k?'L':'M')+pt(p[0],p[1])).join(' ');
+ const ty=Y(target),right=pL+pw;
+ const rects=[],hit=(a,b)=>a.x0<b.x1&&a.x1>b.x0&&a.y0<b.y1&&a.y1>b.y0;
+ let out=[0,.5,1].map(t=>`<line class="sc-grid" x1="${pL}" y1="${f1(pT+t*ph)}" x2="${right}" y2="${f1(pT+t*ph)}"/><text x="${pL-6}" y="${f1(pT+t*ph+3)}" text-anchor="end">${compact(ymax*(1-t))}</text>`).join('');
+ const metaText='Meta '+compact(target);
+ out+=`<line class="sc-target" x1="${pL}" y1="${f1(ty)}" x2="${right}" y2="${f1(ty)}"/><text x="${pL+4}" y="${f1(ty-5)}">${metaText}</text><line class="sc-deadline" x1="${right}" y1="${pT}" x2="${right}" y2="${pT+ph}"/>`;
+ rects.push({x0:pL+2,x1:pL+6+tw(metaText),y0:ty-15,y1:ty-2});
+ const parts=[],cross=[];
+ good.forEach(c=>{
+  const pts=idx.map((i,k)=>[i,c.vals[k]]);let dark=pts,light=[];
+  if(!c.real){const m=c.sc.monthsToGoal;
+   if(m<=0){dark=[];light=pts}
+   else if(isFinite(m)&&m<months){dark=pts.filter(p=>p[0]<m).concat([[m,target]]);light=[[m,target]].concat(pts.filter(p=>p[0]>m))}
+   if(isFinite(m)&&m>0&&m<=months&&m<=600)cross.push({x:X(m),color:c.color,text:fmtPct(c.rate)+'% · '+formatMonthsToGoal(m),m,rate:c.rate});
+  }
+  const dash=c.real?' stroke-dasharray="6 4"':'';
+  if(dark.length>1)parts.push(`<path d="${seg(dark)}" fill="none" stroke="${c.color}" stroke-width="2.6" stroke-linejoin="round" stroke-linecap="round"${dash}/>`);
+  if(light.length>1)parts.push(`<path d="${seg(light)}" fill="none" stroke="${c.color}" stroke-opacity=".4" stroke-width="2.6" stroke-linejoin="round" stroke-linecap="round"${dash}/>`);
+ });
+ out+=parts.join('');
+ const ends=good.map(c=>({c,v:c.vals[c.vals.length-1],y:Y(c.vals[c.vals.length-1])})).sort((a,b)=>a.y-b.y);
+ let prev=-1e9;ends.forEach(e=>{e.ly=Math.max(e.y,prev+14);prev=e.ly});
+ const lim=pT+ph+8;if(ends.length&&ends[ends.length-1].ly>lim){let nx=lim;for(let i=ends.length-1;i>=0;i--){ends[i].ly=Math.min(ends[i].ly,nx);nx=ends[i].ly-14}}
+ ends.forEach(e=>{const t=compact(e.v),lx=right+9,name=e.c.real?'Realidade':fmtPct(e.c.rate)+'% a.m.';
+  if(Math.abs(e.ly-e.y)>3)out+=`<line x1="${f1(right+3)}" y1="${f1(e.y)}" x2="${f1(lx-2)}" y2="${f1(e.ly-3)}" stroke="${e.c.color}" stroke-opacity=".5" stroke-width="1"/>`;
+  out+=`<circle cx="${f1(right)}" cy="${f1(e.y)}" r="4" fill="${e.c.color}" stroke="#fff" stroke-width="1.5" data-end="${e.c.real?'real':e.c.rate}" data-final="${e.v}"><title>${name}: ${moneyFn(e.v)}</title></circle><text class="sc-end" x="${lx}" y="${f1(e.ly+3)}" fill="${e.c.color}" style="fill:${e.c.color}">${t}</text>`;
+  rects.push({x0:lx-1,x1:lx+tw(t)+1,y0:e.ly-9,y1:e.ly+4});
+ });
+ cross.forEach(k=>rects.push({x0:k.x-6,x1:k.x+6,y0:ty-6,y1:ty+6}));
+ cross.sort((a,b)=>a.x-b.x).forEach(k=>{
+  const w=tw(k.text);let placed=null;
+  for(const dy of [-7,15,-21,29,-35,43,-49,57]){for(const an of ['start','end']){
+   const y=ty+dy,x0=an==='start'?k.x+7:k.x-7-w,r={x0,x1:x0+w,y0:y-10,y1:y+3};
+   if(x0<2||r.x1>W-2||y<pT+8||y>H-pB-3||rects.some(q=>hit(r,q)))continue;
+   placed={r,an,y};break}
+   if(placed)break}
+  if(!placed){const y=ty-7,an='start',x0=k.x+7;placed={r:{x0,x1:x0+w,y0:y-10,y1:y+3},an,y}}
+  rects.push(placed.r);
+  out+=`<circle cx="${f1(k.x)}" cy="${f1(ty)}" r="4" fill="#fff" stroke="${k.color}" stroke-width="2" data-cross="${k.m}" data-rate="${k.rate}"><title>${k.text}</title></circle><text class="sc-cross" x="${f1(placed.an==='start'?k.x+7:k.x-7)}" y="${f1(placed.y)}" text-anchor="${placed.an}" style="fill:${k.color}">${k.text}</text>`;
+ });
+ out+=`<text x="${pL}" y="${H-8}">Hoje</text><text x="${W-4}" y="${H-8}" text-anchor="end">Prazo: ${years} ${years===1?'ano':'anos'}</text>`;
+ el.innerHTML=`<svg viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" role="img" aria-label="Evolução do patrimônio em cada taxa de rendimento até o prazo da meta">${out}</svg>`;
+}
 function header(u,name){set('user-name',name);set('user-email',u.email||'');set('user-avatar',initials(name));set('menu-full-name',name);set('menu-full-email',u.email||'');set('menu-avatar',initials(name));$('user-menu-btn')?.addEventListener('click',e=>{e.stopPropagation();$('user-menu')?.classList.toggle('hidden')});document.addEventListener('click',()=> $('user-menu')?.classList.add('hidden'));$('logout')?.addEventListener('click',async()=>{await KORbuildAuth.logout();location.replace('index.html')});$('language-toggle')?.addEventListener('click',()=>{localStorage.setItem('korbuild-language',(localStorage.getItem('korbuild-language')||'pt-BR')==='pt-BR'?'en-US':'pt-BR');location.reload()})}
 function projectionChart(current,target,planned,real,months,moneyFn){const el=$('projection-chart');if(!el)return;const n=Math.min(Math.max(months,6),60),w=760,h=220,pL=54,pR=12,pT=15,pB=30,max=Math.max(target,current,planned,real,1),pointsFor=v=>Array.from({length:n+1},(_,i)=>{const t=i/n,val=v(i);return{x:pL+t*(w-pL-pR),y:pT+(max-val)/max*(h-pT-pB)}}),planPts=pointsFor(i=>futureValue(current,planned,i,0)),realPts=pointsFor(i=>futureValue(current,real,i,0)),path=pts=>pts.map((p,i)=>(i?'L':'M')+p.x.toFixed(1)+' '+p.y.toFixed(1)).join(' '),area=`M ${planPts[0].x} ${h-pB} L ${planPts.map(p=>`${p.x} ${p.y}`).join(' L ')} L ${planPts[planPts.length-1].x} ${h-pB} Z`,grid=[0,.5,1].map(t=>{const y=pT+t*(h-pT-pB),v=max*(1-t);return `<line x1="${pL}" y1="${y}" x2="${w-pR}" y2="${y}" class="p-grid"/><text x="${pL-8}" y="${y+3}" text-anchor="end">${moneyFn(v)}</text>`}).join('');el.innerHTML=`<svg viewBox="0 0 ${w} ${h}" role="img" aria-label="Projeção do plano versus realidade">${grid}<line x1="${pL}" y1="${pT+(max-target)/max*(h-pT-pB)}" x2="${w-pR}" y2="${pT+(max-target)/max*(h-pT-pB)}" class="p-target"/><path d="${area}" class="p-plan-area"/><path d="${path(planPts)}" class="p-plan"/><path d="${path(realPts)}" class="p-real"/><circle cx="${planPts[n].x}" cy="${planPts[n].y}" r="4" fill="#15935d"/><circle cx="${realPts[n].x}" cy="${realPts[n].y}" r="4" fill="#2474e8"/><text x="${pL}" y="${h-8}">Hoje</text><text x="${w-pR}" y="${h-8}" text-anchor="end">Prazo</text></svg>`}
 async function load(){
@@ -94,6 +155,13 @@ async function load(){
  }
  renderScenariosTable();
  $('show-purchasing-power')?.addEventListener('change',()=>{renderScenariosTable();$('purchasing-power-note')?.classList.toggle('hidden',!$('show-purchasing-power')?.checked)});
+ const visibleRates=new Set([0,0.5]),chipsEl=$('scenario-chips'),chartEl=$('scenario-chart'),hasReality=realInvestment>0;
+ const drawChart=()=>drawScenarioChart({el:chartEl,visible:visibleRates,scenarios:rateScenarios,currentWealth,monthlyPlan,months,years,target,rate,realInvestment,primary,moneyFn});
+ const renderChips=()=>{if(!chipsEl)return;chipsEl.innerHTML=RATE_SCENARIOS.map(r=>`<button type="button" class="scenario-chip" data-rate="${r}" aria-pressed="${visibleRates.has(r)}"><i style="background:${SCENARIO_COLORS[r]}"></i>${fmtPct(r)}% a.m.${r>0?`<small>≈ ${fmtPct(annualEquivalent(r))}% a.a.</small>`:''}</button>`).join('')+(hasReality?'<span class="scenario-legend"><i></i>Realidade</span>':'')};
+ renderChips();set('scenario-reality-note',hasReality?'':'Ainda sem lançamentos suficientes para mostrar sua realidade');
+ chipsEl?.addEventListener('click',e=>{const b=e.target.closest('.scenario-chip');if(!b)return;const r=Number(b.dataset.rate);if(visibleRates.has(r))visibleRates.delete(r);else visibleRates.add(r);renderChips();drawChart()});
+ let resizeTimer;window.addEventListener('resize',()=>{clearTimeout(resizeTimer);resizeTimer=setTimeout(drawChart,150)});
+ drawChart();
  set('projected',moneyFn(projected));set('real-projected',moneyFn(realProjected));set('projected-gap',realProjected>=target?'Objetivo alcançado pelo ritmo real':'Faltariam '+moneyFn(Math.max(0,target-realProjected))+' no ritmo real');
  set('month-income',moneyFn(incomeMonth));set('month-expenses',moneyFn(expenseMonth));set('month-invested',moneyFn(investMonth));
  const bar=$('progress-bar');if(bar)bar.style.width=progress+'%';
