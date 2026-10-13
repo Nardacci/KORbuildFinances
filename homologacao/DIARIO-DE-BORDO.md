@@ -4,6 +4,29 @@ Entrada mais nova no topo. Formato de cada entrada: data, chat/etapa, feito, res
 
 ---
 
+## 2026-10-13 — Chat 1 (continuação) — Etapa 9 (parte 1): preparação da Fase 1 de testes
+
+**Feito**
+- `homologacao/testes/fase1/ROTEIRO-FASE1.md`: 8 blocos de consultas **só de leitura** (18 arquivos de resultado), em ordem, para o dono do projeto rodar no SQL Editor do projeto de teste: inventário do esquema (tabelas, colunas, funções, políticas, RLS, restrições, gatilhos, visões), privilégios por tabela e por função, definições das funções, jobs agendados com execuções e respostas HTTP, privilégio de DELETE do job de insights, origem das categorias, nomes dos campos guardados do pagador.
+- `homologacao/testes/fase1/resultados/LEIA-ME.md`: nomes de arquivo esperados.
+- `homologacao/scripts/etapa9/comparar-fase1.py`: `--sanear` registra se cada job aponta para o projeto de teste (igual/diferente, sem copiar o identificador) e anonimiza identificadores, e-mails, tokens e chaves nos CSV; sem argumento, compara os resultados com o repositório (DDL versionada, grants de `20260923190000`, baseline 27/4/34/63) e com as inferências (IA-S02, IA-S03, R-RDP-01, ASS-S07). Testado com dados sintéticos fora do repositório; recusa comparar arquivo não anonimizado.
+- T-BD-06 (funções administrativas negam usuário comum) movido para a Fase 4: exige usuário logado não administrador.
+
+**Resultado**
+- Nenhum teste executado ainda; nada criado no banco. Nenhum arquivo do sistema alterado.
+
+**Parou em**
+- Aguardando o dono do projeto executar o roteiro e salvar os CSV em `homologacao/testes/fase1/resultados/` (meio dia).
+
+**Próximo passo**
+- Etapa 9 (parte 2): rodar `comparar-fase1.py --sanear` e depois `comparar-fase1.py`; registrar o resultado de cada bloco nos pacotes (coluna "Situação": `Validada` ou achado novo), em especial BD-S01, BD-S02, IA-S02, IA-S03, RDP-S07, INV-S05, ASS-S07, ASS-S09; atualizar `04-permissoes.md` do BD com os "?" resolvidos; registrar no diário.
+
+**O que revisar**
+- Antes de rodar: confirmar que o projeto aberto no SQL Editor é o de teste. Nenhuma consulta altera dados.
+- Antes de qualquer commit com resultados: rodar `--sanear` (regra 5 do `CLAUDE.md`).
+
+---
+
 ## 2026-10-13 — Chat 1 (continuação) — Etapa 8: consolidação
 
 **Feito**
