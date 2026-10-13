@@ -4,6 +4,36 @@ Entrada mais nova no topo. Formato de cada entrada: data, chat/etapa, feito, res
 
 ---
 
+## 2026-10-13 — Chat 1 (continuação) — Etapa 7: módulo IA (Kora e insights)
+
+**Feito**
+- Leitura integral de `supabase/functions/finances-ai/index.ts` (772 linhas) e `compute-insights/index.ts`, do painel Kora em `auth.js:101-269`, e dos 4 SQL de IA (`ai_usage_log`, `ai_insights` + `compute_ai_insights`, agenda diária, RPCs de limite).
+- Pacote completo de **IA** em `homologacao/IA/` (11 arquivos): 37 regras, 5 fluxos, 17 achados de segurança, 23 casos de teste, 17 requisitos.
+- 4 scripts em `homologacao/scripts/etapa7/`: `limite-mensal.py` (bloqueio por cota e virada de mês UTC), `regra-dos-insights.py` (6 cenários da regra "categoria acima da média"), `simulacao-de-cenario.py` (ferramenta de cenário, mesma conta do Planejamento), `custo-estimado.py` (custo mensal em dólares a partir dos tokens).
+- Nenhuma chamada à API da Anthropic e nenhum teste executado; nenhum arquivo do sistema alterado.
+
+**Resultado (principais achados; detalhes em `homologacao/IA/SEGURANCA-CONFIDENCIAL.md`)**
+- **Dados saem para a Anthropic sem aviso nem consentimento** (IA-S01): texto livre do usuário, até 8 mensagens anteriores, nomes de categorias e da meta, valores e projeções. Não vão e-mail, nome, identificadores nem lançamentos individuais. Falta política de privacidade, base legal e cláusula de transferência internacional (LGPD art. 33).
+- **O job noturno de insights provavelmente nunca funcionou** (IA-S02 e S03): a função SQL faz `DELETE` e o único grant versionado a `service_role` é SELECT/INSERT/UPDATE (o comentário diz que só procuraram `.delete(` em TypeScript); além disso, o endereço chamado pelo job tem um identificador de projeto **diferente** do de `supabase/config.toml`. Ninguém lê o retorno do job.
+- **Usuário bloqueado consegue usar a IA** chamando a função diretamente (IA-S04): a função não consulta o status comercial; só o painel some em `billing.html`.
+- **Sem ressalva "não é recomendação de investimento"** (IA-S12), e as projeções herdam o patrimônio por saldo inicial (RN-PLN-004).
+- Conversa fica no navegador após o logout (IA-S05); erros e resposta vazia após 3 rodadas distorcem a cota (IA-S06, S07); modelo `claude-sonnet-5` fixo no código, de geração anterior, válido hoje (IA-S11).
+- Pontos positivos: token validado no servidor, leituras com RLS do usuário, ferramentas só de leitura, HTML da resposta escapado, texto das conversas não gravado no servidor.
+- Custo conferido por script: entre US$ 0,56 e US$ 10,08 por workspace/mês dentro do limite de 100 perguntas; a assinatura cobre; o risco está no uso fora do limite.
+
+**Parou em**
+- Fim da Etapa 7. Todos os 9 módulos funcionais e o transversal BD têm pacote (ACS, CTA, RDP, INV, PLN, DSH, ASS, ADM, IA, BD).
+
+**Próximo passo (proposta)**
+- Etapa 8: consolidação — `homologacao/00-consolidacao/` com (a) matriz geral de riscos e achados por severidade, com os 10 itens que devem ser tratados antes de cobrar usuários; (b) plano de testes integrado em ordem de execução no ambiente de teste, com os dados `TESTE` compartilhados; (c) "O ideal" do sistema (requisitos P1 de todos os módulos num só roteiro); (d) lista de decisões de produto ainda abertas.
+
+**O que revisar**
+- CT-IA-18 e CT-IA-19 são duas consultas SQL só de leitura que confirmam IA-S02 e IA-S03 em minutos.
+- `homologacao/IA/SEGURANCA-CONFIDENCIAL.md`: não publicar.
+- Decisão de produto: a Kora deve ficar visível para usuários antes de REQ-IA-01/02/03 (aviso, política, ressalva)?
+
+---
+
 ## 2026-10-13 — Chat 1 (continuação) — Etapa 6: módulos ASS e ADM
 
 **Feito**
