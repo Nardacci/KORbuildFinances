@@ -4,6 +4,36 @@ Entrada mais nova no topo. Formato de cada entrada: data, chat/etapa, feito, res
 
 ---
 
+## 2026-10-13 — Chat 1 (continuação) — Etapa 4: módulo PLN
+
+**Feito**
+- Leitura integral de `planning.js` (226 linhas, toda a matemática), `planning.html`, `wealth-goal.html` e das funções de objetivo do `dashboard.js`.
+- Pacote completo de **PLN** (`homologacao/PLN/`, 11 arquivos).
+- 4 scripts em `homologacao/scripts/etapa4/`: `projecao.js` (valor futuro, aporte necessário, meses até a meta, com conferência cruzada e conta à mão), `inflacao-ir.py`, `patrimonio-atual.py`, `capacidade.js`.
+
+**Resultado (principais achados; detalhes no pacote)**
+- 27 regras; 5 fluxos; 9 achados de segurança; 20 casos de teste; 14 requisitos.
+- **As fórmulas financeiras estão corretas** (aporte necessário leva exatamente à meta; mês calculado coincide com a meta; conta à mão confere). Os problemas estão nas entradas e nas premissas:
+- **Patrimônio atual usa o saldo INICIAL das contas**, não o saldo atual: receitas, despesas e transferências nunca entram (RN-PLN-004). Se o usuário declarou patrimônio inicial, esse número vale para sempre.
+- **Prazo contado sempre a partir de hoje** (anos × 12): o plano nunca atrasa, e a previsão de chegada diverge da do dashboard (RN-PLN-005, 022).
+- **Três "capacidades" diferentes na mesma tela**: a que decide o conselho ("O que fazer agora") divide por 6 meses fixos; a exibida divide pelos meses com dados. Com 3 meses de dados, o conselho usa 1.000 e a tela mostra 2.000 (RN-PLN-011 a 015).
+- **Só a moeda principal conta**: renda em EUR com meta em BRL dá capacidade zero sem aviso (RN-PLN-024).
+- **Taxa esperada dos investimentos é obrigatória e nunca usada** (RN-PLN-025). Inflação e tabela de IR fixas no código, IR com 30 dias por mês (RN-PLN-018, 019).
+- **Nome de pessoa real fixo no código** como texto de espera e valor padrão (PLN-S01).
+
+**Parou em**
+- Fim da Etapa 4, sem execução de testes. Nenhum arquivo do sistema foi alterado.
+
+**Próximo passo (proposta)**
+- Etapa 5: módulo DSH (dashboard e visão gerencial "Transações"): conferir se o que a tela mostra bate com as tabelas, inclusive a evolução do patrimônio baseada em fechamentos.
+
+**O que revisar**
+- Prioridades P1 de REQ-PLN-01, 02, 03, 05, 09, 11 e 13.
+- Decisão de produto: usar a taxa esperada dos investimentos como cenário (REQ-PLN-07) ou parar de coletá-la.
+- `homologacao/PLN/SEGURANCA-CONFIDENCIAL.md`: não publicar.
+
+---
+
 ## 2026-10-13 — Chat 1 (continuação) — Etapa 3: módulo INV
 
 **Feito**

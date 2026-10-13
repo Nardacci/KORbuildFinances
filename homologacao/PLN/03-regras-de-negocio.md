@@ -1,0 +1,33 @@
+# PLN · 03 — Regras de negócio
+
+Situação: `Extraída` (lida no código), `A confirmar no teste`, `Validada`. Cálculos marcados "conferido por script" têm a conta em `homologacao/scripts/etapa4/`.
+
+| Código | Regra | Fonte (arquivo:linha) | Situação | Observação |
+|---|---|---|---|---|
+| RN-PLN-001 | Objetivo: nome, valor da meta > 0, prazo de 1 a 100 anos, data inicial, opção de considerar patrimônio inicial com valor ≥ 0; plano: aporte mensal projetado > 0 e taxa projetada 0 | `20260927120000_...:54-74, 94-98` | Extraída | Gravação só pelo assistente (ACS) |
+| RN-PLN-002 | A tela usa o objetivo e o plano mais recentes do workspace (1 de cada) | `planning.js:131-132` | Extraída | Não há tela para múltiplos objetivos |
+| RN-PLN-003 | Sem objetivo, a tela mostra "Defina seu objetivo" com link para `settings.html` | `planning.js:140`; `planning.html` | Extraída | A revisão não cria objetivo novo (`app.js:109`): **Ponto para validar** |
+| RN-PLN-004 | Patrimônio atual = valor declarado no objetivo, se "considerar patrimônio inicial" estiver marcado; senão, Σ **saldo inicial** das contas na moeda principal + Σ valor das posições na moeda principal | `planning.js:143` | Extraída | Conferido por script (`patrimonio-atual.py`): receitas, despesas e transferências nunca entram; posição sem cotação entra como 0; outras moedas não entram |
+| RN-PLN-005 | Prazo em meses = anos do objetivo × 12, contado a partir de hoje; a data inicial do objetivo não é usada pela tela | `planning.js:144` | Extraída | O dashboard calcula a previsão como data inicial + anos (`dashboard.js`, função `deadline`); as duas telas divergem (RN-PLN-022) |
+| RN-PLN-006 | Valor futuro = patrimônio × (1+r)^n + aporte × ((1+r)^n − 1) ÷ r; aporte no fim de cada mês; r = 0 → aporte × n | `planning.js:9` | Extraída | Conferido por script |
+| RN-PLN-007 | Aporte necessário = (meta − patrimônio × (1+r)^n) × r ÷ ((1+r)^n − 1); 0 se meta ≤ patrimônio ou prazo ≤ 0; nunca negativo | `planning.js:10` | Extraída | Conferido por script: com esse aporte o valor futuro é exatamente a meta |
+| RN-PLN-008 | Meses até a meta = log((meta + aporte/r) ÷ (patrimônio + aporte/r)) ÷ log(1+r); 0 se já alcançada; infinito se r = 0 e aporte ≤ 0, ou sem aporte e sem patrimônio | `planning.js:11-22` | Extraída | Conferido por script |
+| RN-PLN-009 | Cenários fixos: 0; 0,5; 1; 1,5; 2 % ao mês, com o mesmo aporte do plano; equivalência anual = (1+r)^12 − 1 | `planning.js:23, 31, 160` | Extraída | A taxa do plano (0) só é usada em "plano × realidade" |
+| RN-PLN-010 | "Tempo até a meta": "Meta já alcançada" se ≤ 0; "Não bate a meta nesse prazo" se infinito ou > 600 meses; senão anos e meses arredondados | `planning.js:25` | Extraída | O texto "nesse prazo" aparece mesmo quando o cálculo ultrapassa 50 anos, não o prazo do objetivo |
+| RN-PLN-011 | Capacidade (decisões) = (receitas realizadas − despesas realizadas dos últimos 6 meses, na moeda principal) ÷ 6, nunca negativa; investimento real = (aportes + ajustes dos últimos 6 meses) ÷ 6 | `planning.js:145-146` | Extraída | Divisor fixo 6 mesmo com menos meses de dados; "ajuste" conta como investimento |
+| RN-PLN-012 | Realidade (exibida) = médias de sobra (receitas − despesas) e de investimento só dos meses com dados, na janela de 12 meses; texto indica quantos meses | `planning.js:150-158, 167` | Extraída | Conferido por script (`capacidade.js`): com 3 meses de dados, decisão usa 1.000 e a tela mostra 2.000 |
+| RN-PLN-013 | Status do plano e "O que fazer agora" comparam a capacidade de 6 meses (RN-PLN-011) com o aporte necessário de cada cenário: todos / nenhum / depende | `planning.js:163, 202-207, 215-223` | Extraída | Usa a capacidade de 6 meses, não a exibida |
+| RN-PLN-014 | Selo da projeção compara meses até a meta ≤ prazo em cada cenário: "alcança em todos", "não alcança em nenhum", "depende" | `planning.js:162, 208-213` | Extraída | |
+| RN-PLN-015 | Nota da realidade compara a capacidade exibida (12 meses) com o aporte necessário | `planning.js:164, 214` | Extraída | Terceira comparação, com outra base |
+| RN-PLN-016 | Projeção pelo plano = valor futuro com aporte do plano e taxa do plano (0); pelo ritmo real = com o investimento real de 6 meses; "Faltariam X no ritmo real" | `planning.js:146, 199` | Extraída | Taxa 0 torna a projeção = patrimônio + aporte × meses |
+| RN-PLN-017 | Progresso = patrimônio atual ÷ meta, entre 0 e 100 % | `planning.js:146, 166` | Extraída | |
+| RN-PLN-018 | Poder de compra hoje = valor no prazo ÷ (1 + inflação)^anos; inflação fixa: BRL 4,5 %, USD 2,5 %, EUR 2,5 %, GBP 3 %; outras moedas 2,5 % | `planning.js:24, 175, 180` | Extraída | Conferido por script; origem das taxas não documentada |
+| RN-PLN-019 | IR só para moeda principal BRL: dias = meses × 30; 22,5 % ≤ 180 d, 20 % ≤ 360, 17,5 % ≤ 720, 15 % acima; ganho = valor − patrimônio − aporte × meses (mínimo 0); líquido = valor − ganho × alíquota | `planning.js:169, 176, 183` | Extraída | Conferido por script: 12 meses caem em 20 % (360 dias); alíquota única sobre todo o ganho |
+| RN-PLN-020 | Gráfico de cenários: curvas por taxa (0 % e 0,5 % visíveis ao abrir; demais por botão); linha "Realidade" tracejada quando há investimento real; cruzamento com a meta marcado quando ocorre dentro do prazo | `planning.js:43-44, 51, 192-196` | Extraída | Só exibição |
+| RN-PLN-021 | Gráfico plano × realidade usa taxa 0 e limita o eixo a 6-60 meses, independentemente do prazo | `planning.js:124` | Extraída | Prazo de 15 anos é desenhado como 60 meses |
+| RN-PLN-022 | Previsão de chegada no dashboard = data inicial + anos; no Planejamento o prazo é anos a partir de hoje | `dashboard.js` (`deadline`, `renderGoal`); `planning.js:144` | Extraída | Dois prazos diferentes para o mesmo objetivo |
+| RN-PLN-023 | Mês corrente e janelas de 6 e 12 meses são calculados em UTC | `planning.js:8, 129` | Extraída | Mesmo defeito das Etapas 2 e 3 (`scripts/etapa2/limites-do-mes.js`) |
+| RN-PLN-024 | Só valores na moeda principal entram em capacidade, realidade, patrimônio e meu mês; outras moedas são ignoradas sem aviso | `planning.js:143, 145, 147, 152-154` | Extraída | Usuário com renda em EUR e meta em BRL vê capacidade 0 |
+| RN-PLN-025 | A taxa esperada por investimento (`expected_monthly_rate`) não participa de nenhum cálculo | busca em `*.js` | Extraída | Dado obrigatório sem uso |
+| RN-PLN-026 | Valores são exibidos sem centavos (arredondados) | `planning.js:4` | Extraída | "Falta R$ 1" na revisão pode aparecer como R$ 1 |
+| RN-PLN-027 | A tela é somente leitura; nenhuma gravação | `planning.js` (ausência de insert/update) | Extraída | |
