@@ -4,6 +4,31 @@ Entrada mais nova no topo. Formato de cada entrada: data, chat/etapa, feito, res
 
 ---
 
+## 2026-10-13 — Chat 1 (continuação) — Etapa 1: módulos BD e ACS
+
+**Feito**
+- Leitura integral de: `auth.js`, `login.js`, `signup.js`, `settings.js`, `app.js`, `index.html`, `login.html`, `signup.html`, `settings.html`, `workspace.html`, as 30 migrações SQL, os testes `login`, `onboarding`, `workspace-review`, `navigation` e os helpers.
+- Pacote completo do módulo **BD** (`homologacao/BD/`, 11 arquivos) e do módulo **ACS** (`homologacao/ACS/`, 11 arquivos), no formato do `CLAUDE.md`, seção 4.
+- Cálculos do assistente (data estimada, receita mensal equivalente, aviso de aporte) conferidos por script com casos de exemplo; resultados em `homologacao/ACS/08-plano-de-testes.md`.
+
+**Resultado (principais achados; detalhes nos pacotes)**
+- BD: 16 regras extraídas; esquema (27 tabelas, 63 políticas) continua fora do repositório; 11 achados de segurança no documento confidencial, dos quais o mais relevante para o negócio é que o bloqueio comercial existe só na tela, não no banco (BD-S04). 12 testes propostos (consultas e tentativas de acesso, só leitura).
+- ACS: 31 regras extraídas; 6 fluxos descritos com fluxogramas; 13 achados de segurança (destaques: termos de uso sem link nem registro de aceite, ACS-S09; sem "esqueci minha senha", ACS-S04; nome e país do cadastro descartados, RN-ACS-004; link de confirmação fixo em produção, ACS-S05). 25 casos de teste com dados `TESTE`. 14 requisitos em "O ideal".
+- Pontos para validar que dependem do analista: (a) política de senha e confirmação de e-mail no projeto de teste; (b) quais são as 2 tabelas que o código não cita (27 declaradas vs. 25 identificadas); (c) se a 1ª receita criada no assistente deveria ficar vinculada à 1ª conta (hoje não fica, RN-ACS-022); (d) ambiente de teste: segundo usuário `TESTE` para os testes de isolamento.
+
+**Parou em**
+- Fim da Etapa 1, sem execução de testes (apenas planejados). Nenhum arquivo do sistema foi alterado.
+
+**Próximo passo (proposta)**
+- Etapa 2: módulos CTA (contas e transferências) e RDP (receitas e despesas). Antes, se o analista quiser, executar T-BD-01 (inventário real do esquema) no projeto de teste, pois ele resolve vários "Pontos para validar" de uma vez e alimenta os modelos de dados das próximas etapas.
+
+**O que revisar**
+- Severidades e prioridades (P1/P2/P3) são inferência do analista de homologação; ajustar conforme a visão do negócio.
+- `homologacao/BD/SEGURANCA-CONFIDENCIAL.md` e `homologacao/ACS/SEGURANCA-CONFIDENCIAL.md`: não publicar.
+- Campos não preenchidos do briefing continuam assumidos (ver `homologacao/00-reconhecimento/RECONHECIMENTO.md`, seção 8).
+
+---
+
 ## 2026-10-13 — Chat 1 — Etapa 0: reconhecimento do material
 
 **Feito**
