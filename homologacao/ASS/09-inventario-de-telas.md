@@ -11,4 +11,4 @@
 | `mp-cancel-subscription` | edge function | cancelar | Funciona | ASS-S05 |
 | `mp-sync-exchange-rate` | edge function | PTAX | Funciona; job não versionado | |
 | (sem tela) | — | histórico de pagamentos/faturas para o usuário | Inexistente | `get_own_payment_subscription` existe sem uso |
-| (sem tela) | — | instruções de pagamento manual (Pix) para o usuário | Inexistente, embora cadastradas pelo admin | `get_own_payment_instructions` sem uso |
+| (sem tela) | — | pagamento por Pix para o usuário (instruções, valor, aviso de pagamento) | Inexistente, embora cadastradas pelo admin; **decisão: passa a ser opção oficial (REQ-ASS-11)** | `get_own_payment_instructions` sem uso |

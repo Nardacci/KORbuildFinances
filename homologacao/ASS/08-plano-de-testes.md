@@ -30,3 +30,4 @@ Regras: só no ambiente de teste; só registros `TESTE`; nada de alterar ou apag
 | CT-ASS-24 | Conciliação em lote só escreve com `dry_run:false` | chamar sem o campo | resposta `would_*`, nada gravado | RN-ASS-017 |
 | CT-ASS-25 | Texto "14 dias" | admin: `trial_days` = 30; novo workspace | tela ainda diz "14 DIAS" (**hoje**) | RN-ASS-025 |
 | CT-ASS-26 | Dados em `payment_events` | inspecionar `raw_payload` de um pagamento de teste | anotar campos pessoais presentes | ASS-S07 |
+| CT-ASS-27 | Pagamento com cartão estrangeiro | no sandbox do MP, usar cartão de teste de outro país | assinatura autorizada; anotar o resultado para confirmar a resposta recebida pelo analista | R-ASS-11 |

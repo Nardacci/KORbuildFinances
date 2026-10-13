@@ -20,6 +20,11 @@ Entrada mais nova no topo. Formato de cada entrada: data, chat/etapa, feito, res
 - ADM: administrador com poder total sem trilha de antes/depois nem 2FA (ADM-S01, S05); carência de pagamento sem campo no painel; instruções de pagamento manual cadastradas e nunca exibidas ao usuário; três RPCs de autoatendimento concedidas e nunca chamadas.
 - Ciclo de teste grátis (14 + 6 dias) e precedência entre pagamento e teste conferidos por script e coerentes com o código.
 
+**Decisões do analista (mesmo dia, após a entrega)**
+- Pix é uma das opções de pagamento → REQ-ASS-11 e REQ-ADM-08 viraram requisitos P1 (fluxo de aviso e confirmação).
+- O valor em reais deve ser recalculado a cada renovação → REQ-ASS-03 detalhado (rotina mensal que atualiza o valor da assinatura no Mercado Pago).
+- Público no exterior consegue pagar pelo Mercado Pago Brasil: o analista consultou e a resposta foi sim → R-ASS-11 rebaixado; teste CT-ASS-27 adicionado para confirmar no sandbox.
+
 **Parou em**
 - Fim da Etapa 6, sem execução de testes. Nenhum arquivo do sistema foi alterado.
 

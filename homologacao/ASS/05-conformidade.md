@@ -10,4 +10,4 @@
 | Segurança do webhook | assinatura HMAC, refetch, sem confiar no corpo | Boa prática | ASS-S02 (alcance) |
 | Segredos | em variáveis da plataforma e no Vault; nenhum no código | Adequado | REQ-BD-08 |
 | Igualdade de tratamento | ajuste de preço por workspace a critério do admin, sem registro de motivo obrigatório (`notes` opcional) | Risco de discriminação não documentada | REQ-ADM-05 |
-| Residentes fora do Brasil | cobrança em BRL por Mercado Pago; público-alvo mora no exterior | **Ponto para validar:** cartões estrangeiros no MP Brasil, IOF, regras do país de residência | — |
+| Residentes fora do Brasil | cobrança em BRL por Mercado Pago; público-alvo mora no exterior | Analista informou (2026-10-13) que consultou e a resposta foi que o público no exterior consegue pagar. Pix passa a ser opção oficial (REQ-ASS-11). Restam: IOF e regras fiscais do país de residência (Ponto para validar) | REQ-ASS-11; CT-ASS-27 |

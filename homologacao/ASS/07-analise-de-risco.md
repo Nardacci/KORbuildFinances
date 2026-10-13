@@ -12,4 +12,4 @@
 | R-ASS-08 | Nenhum teste automatizado do ciclo comercial; regressão silenciosa | Alta | Alto | `01-reconhecimento.md` | REQ-ASS-08 |
 | R-ASS-09 | Texto "14 dias" desatualizado após mudança de configuração | Média | Baixo | ASS-S13 | REQ-ASS-09 |
 | R-ASS-10 | Bloqueio só na tela; usuário bloqueado continua usando a API | Média | Baixo (negócio) | ASS-S15 | REQ-BD-05 |
-| R-ASS-11 | Usuário no exterior sem meio de pagamento aceito pelo Mercado Pago Brasil | A validar | Alto (conversão) | `05-conformidade.md` | Ponto para validar com o negócio |
+| R-ASS-11 | Usuário no exterior sem meio de pagamento aceito pelo Mercado Pago Brasil | Baixa (segundo o analista) | Alto (conversão) | `05-conformidade.md` | **Resposta do analista (2026-10-13): consultou e a resposta foi que sim, o público no exterior consegue pagar.** Fonte da consulta não registrada aqui; recomenda-se um pagamento de teste com cartão estrangeiro no sandbox (CT-ASS-27) e, com o Pix como opção (REQ-ASS-11), o risco cai |
