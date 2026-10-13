@@ -4,6 +4,34 @@ Entrada mais nova no topo. Formato de cada entrada: data, chat/etapa, feito, res
 
 ---
 
+## 2026-10-13 — Chat 1 (continuação) — Etapa 3: módulo INV
+
+**Feito**
+- Leitura integral dos 9 arquivos JS e das 9 telas HTML de investimentos (campos e textos extraídos por script), do script inline dos cartões de celular, do gatilho de lançamentos e dos 4 testes automáticos relacionados.
+- Pacote completo de **INV** (`homologacao/INV/`, 11 arquivos).
+- 2 scripts em `homologacao/scripts/etapa3/`: `totais-da-carteira.js` (lógica exata dos totais da tela, 4 casos) e `modelo-de-posicao-referencia.py` (modelo esperado da posição, marcado como inferência, para comparar com a visão no teste CT-INV-20).
+
+**Resultado (principais achados; detalhes no pacote)**
+- 33 regras; 5 fluxos; 10 achados de segurança; 33 casos de teste; 15 requisitos.
+- **Nenhuma tela ou rotina grava a cotação atual** (`current_price`): investimentos com preço de mercado ficam para sempre em "Aguardando cotação"; totais viram "Parcial" e o patrimônio fica incompleto (RN-INV-013, R-INV-01).
+- **Nenhuma tela fecha período** e o bloqueio de período fechado existe só nas telas; as duas funções do banco que alteram e excluem lançamentos não estão no repositório (RN-INV-025 a 027, INV-S01). A evolução do patrimônio do dashboard depende desses fechamentos.
+- **A fórmula da posição** (quantidade, preço médio, resultado, rentabilidade) não está no repositório; só os nomes das colunas (RN-INV-011).
+- **Testes automáticos provavelmente quebrados**: três arquivos inserem investimentos sem a taxa esperada, obrigatória no banco desde 2026-09-27 (RN-INV-010, R-INV-05).
+- Sem GBP nas moedas de investimento, embora a conta aceite GBP; sem conferência valor = quantidade × preço; bloqueios de tipo/moeda/exclusão só na tela.
+
+**Parou em**
+- Fim da Etapa 3, sem execução de testes. Nenhum arquivo do sistema foi alterado.
+
+**Próximo passo (proposta)**
+- Etapa 4: módulo PLN (planejamento: cenários de taxa, inflação, imposto de renda, aporte necessário), com conferência dos cálculos por script. É o módulo com mais matemática (`planning.js`, 27 KB).
+
+**O que revisar**
+- Modelo de referência da posição é inferência (5 premissas listadas no script); só o teste CT-INV-20 no banco diz a fórmula real.
+- Prioridades P1 de REQ-INV-01 a 05 e 08; decisões de produto: significado de "ajuste" (REQ-INV-15), rendimento/taxa sem conta (REQ-INV-10).
+- `homologacao/INV/SEGURANCA-CONFIDENCIAL.md`: não publicar.
+
+---
+
 ## 2026-10-13 — Chat 1 (continuação) — Etapa 2: módulos CTA e RDP
 
 **Feito**
