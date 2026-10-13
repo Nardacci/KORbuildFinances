@@ -4,6 +4,36 @@ Entrada mais nova no topo. Formato de cada entrada: data, chat/etapa, feito, res
 
 ---
 
+## 2026-10-13 — Chat 1 (continuação) — Etapa 2: módulos CTA e RDP
+
+**Feito**
+- Leitura integral dos 12 arquivos JS e das 12 telas HTML (campos, opções e textos extraídos por script) de contas, transferências, receitas e despesas, mais os 6 testes automáticos relacionados.
+- Pacotes completos de **CTA** (`homologacao/CTA/`) e **RDP** (`homologacao/RDP/`), 11 arquivos cada, no formato do `CLAUDE.md`, seção 4.
+- 5 conferências por script em `homologacao/scripts/etapa2/` (valor digitado, limites do mês, receitas do mês, data padrão, saldo e câmbio), rodadas em 7 fusos horários.
+
+**Resultado (principais achados; detalhes nos pacotes)**
+- CTA: 23 regras; 6 fluxos; 9 achados de segurança; 26 casos de teste; 13 requisitos. RDP: 30 regras; 6 fluxos; 9 achados de segurança; 29 casos de teste; 15 requisitos.
+- **Valor digitado com ponto é lido 100 vezes maior** em transferências e despesas (campos de texto): "100.50" vira 10.050 (RN-CTA-016, RN-RDP-025). A receita usa campo numérico e não tem o problema.
+- **Limites de "este mês" erram na Europa**: Itália e Alemanha em todos os 12 meses; Portugal e Reino Unido de abril a outubro; Brasil e EUA não. Exemplo com a conta: em outubro na Itália, "Recebido este mês" soma 200 em vez de 500 (RN-RDP-007). O mesmo padrão aparece em 10 arquivos, inclusive dashboard e planejamento (tratar nas Etapas 4 e 5).
+- **Despesas aparecem sempre em R$**, qualquer que seja a moeda principal (RN-RDP-017), e a despesa nunca usa a moeda da conta (RN-RDP-015, RN-RDP-022).
+- **Ponto crítico a validar primeiro**: não há tela nem código que crie categorias de despesa, e a categoria é obrigatória (RN-RDP-020). Se um usuário novo não receber categorias de algum lugar fora do repositório, ele não consegue registrar nenhuma despesa (CT-RDP-01).
+- **Primeira conta e primeira receita criadas pelo assistente** usam outro vocabulário (tipo da conta, frequência, formato da moeda) e a receita nasce sem conta e sem data. Efeito provável: o campo "Tipo" fica em branco ao editar a conta e a receita some de "Recebido este mês" (RN-CTA-021, RN-RDP-010). A confirmar no teste.
+- Transferência: a tela de edição existe sem link, não há exclusão (e o privilégio de exclusão não foi concedido), e não há proteção contra duplo clique (RN-CTA-018, RN-CTA-022).
+- Saldo da conta: fórmula conferida (exemplo = 1.172,00); soma sem converter moeda e sem considerar a data (RN-CTA-008).
+
+**Parou em**
+- Fim da Etapa 2, sem execução de testes (apenas planejados). Nenhum arquivo do sistema foi alterado.
+
+**Próximo passo (proposta)**
+- Etapa 3: módulo INV (tipos de investimento, investimentos, lançamentos, fechamentos e posições). É o maior módulo (9 telas) e traz o fechamento de período. Antes, se o analista puder: executar CT-RDP-01 (categorias do usuário novo) e T-BD-01 (inventário real do esquema), que fecham os pontos críticos das Etapas 1 e 2.
+
+**O que revisar**
+- Severidades e prioridades são inferência; ajustar conforme o negócio. Em especial a prioridade P1 de REQ-CTA-01 (formato de número) e REQ-CTA-05 (fuso): dependem de quantos usuários estão na Europa e nos EUA.
+- Decisões de produto abertas: exclusão de transferência (REQ-CTA-04), saldo considerar data (REQ-CTA-12, REQ-RDP-15), saldo inicial negativo (REQ-CTA-09).
+- `homologacao/CTA/SEGURANCA-CONFIDENCIAL.md` e `homologacao/RDP/SEGURANCA-CONFIDENCIAL.md`: não publicar.
+
+---
+
 ## 2026-10-13 — Chat 1 (continuação) — Etapa 1: módulos BD e ACS
 
 **Feito**
