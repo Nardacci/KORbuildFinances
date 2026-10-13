@@ -1,0 +1,34 @@
+# ASS · 03 — Regras de negócio
+
+Situação: `Extraída`, `A confirmar no teste`, `Validada`. Prazos e valores conferidos em `homologacao/scripts/etapa6/`.
+
+| Código | Regra | Fonte (arquivo:linha) | Situação | Observação |
+|---|---|---|---|---|
+| RN-ASS-001 | Todo workspace novo entra em teste grátis ao concluir a configuração: `trial_ends_at` = início + `trial_days` (padrão 14); `grace_ends_at` = início + `trial_days` + `grace_days` (padrão 6); horário em UTC | `20260916150000_...:36-48`; `20260927120000_...:83` | Extraída | Conferido por script |
+| RN-ASS-002 | Precedência do status: pagamento `active` → ACTIVE; `past_due` → PAST_DUE (permitido na carência de pagamento, depois bloqueado); `canceled` → CANCELED (permitido até `current_period_end`); `pending`/`paused`/sem linha → fluxo de teste; no fluxo de teste: `ACTIVE` administrativo → ACTIVE; `SUSPENDED`/`CANCELLED` → bloqueado; trial desabilitado → TRIAL_DISABLED (permitido); sem relógio → SETUP_REQUIRED (permitido); dentro do teste → TRIALING; dentro da carência → GRACE_PERIOD; depois → BLOCKED | `20260925000000_...:77-156` | Extraída | Conferido por script |
+| RN-ASS-003 | Carência de pagamento = `payment_grace_days` (padrão 12 se nulo) contados de `past_due_since` | `20260925000000_...:92-98` | Extraída | Sem tela para alterar (ADM) |
+| RN-ASS-004 | Dias restantes = teto de (fim − agora) em dias, mínimo 1 | `20260925000000_...:95, 136, 148` | Extraída | "1 dia restante" aparece até o último segundo |
+| RN-ASS-005 | Linha sem `grace_ends_at`: carência = início + 20 dias (fixo, por desenho) | `20260925000000_...:146`; `20260916130000_...:8-15` | Extraída | |
+| RN-ASS-006 | Workspaces anteriores a 2026-09-15 foram marcados ACTIVE com trial desabilitado (sem cobrança) | `20260915210000_...:40-47` | Extraída | "Grandfathered" |
+| RN-ASS-007 | Preço exibido = preço base × (1 + ajuste do workspace ÷ 100), nunca negativo, na moeda base (USD padrão) | `20260916120000_...:46-50`; `billing.js:37-57` | Extraída | Conferido por script |
+| RN-ASS-008 | Valor cobrado em reais = preço base × PTAX mais recente (venda) × (1 + ajuste ÷ 100), arredondado ao centavo; moeda base BRL não converte; sem cotação → erro "cotação indisponível"; valor ≤ 0 → "preço não configurado" | `mp-create-subscription/index.ts:108-145` | Extraída | Conferido por script: 29,90 USD × 5,4321 = R$ 162,42 |
+| RN-ASS-009 | O valor em reais fica fixo na assinatura criada no MP; variações posteriores da PTAX não alteram a cobrança; a tela não mostra o valor em reais antes do redirecionamento | `mp-create-subscription/index.ts:169-174, 214`; `billing.js:88-111` | Extraída | |
+| RN-ASS-010 | Não cria segunda assinatura: `active`/`past_due` → recusa; `pending` com id → consulta o MP e reaproveita o link se ainda pendente; MP autorizada → recusa | `mp-create-subscription/index.ts:49-100` | Extraída | Proteção contra duplo clique |
+| RN-ASS-011 | Assinatura no MP: mensal, BRL, referência externa = id do workspace, e-mail do pagador = e-mail do usuário, retorno `billing.html?mp_return=1`, aviso para `mp-webhook` | `mp-create-subscription/index.ts:149-176` | Extraída | |
+| RN-ASS-012 | Webhook só aceita avisos com assinatura válida (`x-signature` HMAC com `MP_WEBHOOK_SECRET`, `x-request-id`, `data.id`); sem segredo configurado, recusa tudo | `mp-webhook/index.ts:61-84, 113-117` | Extraída | |
+| RN-ASS-013 | Webhook nunca usa o corpo como verdade: reconsulta o pagamento ou a assinatura no MP antes de gravar | `mp-webhook/index.ts:1-4, 131, 226` | Extraída | |
+| RN-ASS-014 | Pagamento aprovado → `active`, zera atraso, fim do período = próxima data de cobrança; não ressuscita assinatura `canceled`. Pagamento rejeitado → `past_due` só na primeira vez (não reinicia a carência a cada nova tentativa do MP); não altera `canceled` | `mp-webhook/index.ts:170-215` | Extraída | |
+| RN-ASS-015 | Assinatura no MP `authorized` com local `pending` → `active` (início e fim do período); `cancelled` → `canceled` mantendo o fim do período já conhecido; `paused` → `paused` | `mp-webhook/index.ts:259-307` | Extraída | |
+| RN-ASS-016 | Conciliação (lote a cada 15 min e própria): MP `authorized` e local ≠ `active` → `active` com `past_due_since` nulo; `cancelled` → `canceled`; `paused` → `paused`; `pending` → nada | `mp-reconcile/index.ts:174-207, 241-246`; `mp-reconcile-self/index.ts:128-150` | Extraída | **Conflito com RN-ASS-014:** desfaz o `past_due` (ASS-S01) |
+| RN-ASS-017 | Conciliação em lote só toca linhas sem atualização há mais de 15 min (`minutes` configurável) e exige `dry_run: false` explícito para gravar | `mp-reconcile/index.ts:224-246` | Extraída | O cron envia `dry_run=false` (`20260926000000_...:28`) |
+| RN-ASS-018 | Cancelar: só assinatura `active`/`past_due` (cartão); recusa se já `canceled`; PUT no MP; local `canceled` + `cancel_requested_at`; acesso até `current_period_end` | `billing.js:189-198`; `mp-cancel-subscription/index.ts:62-111` | Extraída | Se `current_period_end` for nulo, bloqueia na hora (ASS-S05) |
+| RN-ASS-019 | Ao voltar do checkout (`?mp_return=1`), a tela chama a conciliação própria antes de mostrar o status | `billing.js:277-287` | Extraída | |
+| RN-ASS-020 | Cartão de pagamento aparece em qualquer status exceto ACTIVE (permite assinar durante o teste); cartão "Gerenciar" só ACTIVE/PAST_DUE | `billing.js:119-143, 189-198` | Extraída | |
+| RN-ASS-021 | Faixa do dashboard: só TRIALING e GRACE_PERIOD com trial habilitado; botão "Assinar agora"/"Regularizar" | `dashboard.js:10-33` | Extraída | |
+| RN-ASS-022 | Guarda comercial: acesso BLOCKED redireciona para `billing.html` nas telas de produto; falha técnica libera | `auth.js:38-62` | Extraída | ACS-S01, BD-S04 |
+| RN-ASS-023 | Cotação: USD e EUR, cotação de venda do Banco Central, para hoje ou o último dia com dado em até 7 dias; gravada por moeda e data da cotação | `mp-sync-exchange-rate/index.ts:27, 43-72, 89-92` | Extraída | Conferido por script |
+| RN-ASS-024 | GBP não tem cotação sincronizada e não é opção de moeda base | `mp-sync-exchange-rate/index.ts:85`; `finances-admin.html` (opções USD/EUR/BRL) | Extraída | |
+| RN-ASS-025 | A tela diz "SEU TESTE GRATUITO DE 14 DIAS" mesmo com `trial_days` configurável | `billing.js:153` | Extraída | |
+| RN-ASS-026 | Todos os eventos (criação, reaproveitamento, falhas, pagamentos, cancelamentos, conciliações, tópicos desconhecidos) são gravados em `payment_events` com a resposta bruta do MP | funções `mp-*` (`payment_events.insert`) | Extraída | Trilha de auditoria; contém dados do pagador |
+| RN-ASS-027 | Tópico desconhecido no webhook é registrado e respondido com 200 para o MP não reenviar | `mp-webhook/index.ts:317-324` | Extraída | |
+| RN-ASS-028 | `monthly_price_brl` existe na configuração, mas a tela admin sempre envia nulo e o checkout não o lê (usa PTAX) | `finances-admin.js:85-91`; `mp-create-subscription/index.ts:102-106` | Extraída | Coluna sem uso |

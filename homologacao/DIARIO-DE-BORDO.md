@@ -4,6 +4,35 @@ Entrada mais nova no topo. Formato de cada entrada: data, chat/etapa, feito, res
 
 ---
 
+## 2026-10-13 — Chat 1 (continuação) — Etapa 6: módulos ASS e ADM
+
+**Feito**
+- Leitura integral das 6 edge functions do Mercado Pago e da cotação (cerca de 1.160 linhas de TypeScript), de `billing.js`, `finances-admin.js` e das duas telas; releitura dos SQL comerciais da Etapa 1.
+- Pacotes completos de **ASS** (`homologacao/ASS/`) e **ADM** (`homologacao/ADM/`), 11 arquivos cada.
+- 3 scripts em `homologacao/scripts/etapa6/`: `status-de-acesso.py` (máquina de estados com datas), `preco-em-reais.py` (preço exibido × valor cobrado), `ptax-dias-sem-cotacao.py` (retrocesso de 7 dias).
+
+**Resultado (principais achados; detalhes nos pacotes)**
+- ASS: 28 regras; 6 fluxos; 15 achados de segurança; 26 casos de teste; 14 requisitos. ADM: 16 regras; 6 fluxos; 9 achados; 17 casos; 10 requisitos.
+- **A conciliação desfaz o "pagamento em atraso"** (ASS-S01): o webhook marca atraso quando uma parcela é rejeitada, mas o Mercado Pago mantém a assinatura "autorizada" enquanto tenta cobrar de novo; a conciliação a cada 15 minutos vê "autorizada", grava "ativa" e zera o atraso. Inadimplente recupera o acesso em até 15 minutos e a carência de 12 dias nunca termina em bloqueio.
+- **O webhook do Mercado Pago provavelmente não é alcançável** (ASS-S02): o código diz que a verificação de token está desligada em `supabase/config.toml`, mas o arquivo não lista a função. O próprio código relata "zero invocações" em testes reais. Sem webhook, só a conciliação atualiza, e ela nunca marca atraso.
+- **Preço em USD na tela, cobrança em reais sem mostrar o valor** antes do redirecionamento; valor fica fixo pela PTAX do dia (ASS-S04). Exemplo conferido: 29,90 USD × 5,4321 = R$ 162,42.
+- **Cancelar sem fim de período registrado bloqueia na hora** (ASS-S05). Migração das tabelas de pagamento ausente do repositório (ASS-S03). Respostas brutas do Mercado Pago guardadas sem prazo (ASS-S07). Job da cotação não versionado e sem alerta de cotação velha (ASS-S09).
+- ADM: administrador com poder total sem trilha de antes/depois nem 2FA (ADM-S01, S05); carência de pagamento sem campo no painel; instruções de pagamento manual cadastradas e nunca exibidas ao usuário; três RPCs de autoatendimento concedidas e nunca chamadas.
+- Ciclo de teste grátis (14 + 6 dias) e precedência entre pagamento e teste conferidos por script e coerentes com o código.
+
+**Parou em**
+- Fim da Etapa 6, sem execução de testes. Nenhum arquivo do sistema foi alterado.
+
+**Próximo passo (proposta)**
+- Etapa 7: módulo IA (edge functions `finances-ai` e `compute-insights`, tabelas `ai_*`, assistente Kora em `auth.js`), com foco em LGPD (quais dados vão para a Anthropic), limites de uso e a regra dos insights (`compute_ai_insights`).
+
+**O que revisar**
+- ASS-S01 e ASS-S02 merecem confirmação imediata no ambiente de teste (CT-ASS-15 e CT-ASS-20): afetam receita.
+- Decisões de produto: pagamento manual por Pix é caminho oficial? (REQ-ASS-11); valor em reais recalculado a cada renovação ou fixo? (REQ-ASS-03); público no exterior consegue pagar pelo Mercado Pago Brasil? (R-ASS-11).
+- `homologacao/ASS/SEGURANCA-CONFIDENCIAL.md` e `homologacao/ADM/SEGURANCA-CONFIDENCIAL.md`: não publicar.
+
+---
+
 ## 2026-10-13 — Chat 1 (continuação) — Etapa 5: módulo DSH
 
 **Feito**
