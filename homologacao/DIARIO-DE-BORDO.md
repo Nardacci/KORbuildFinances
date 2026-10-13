@@ -4,6 +4,30 @@ Entrada mais nova no topo. Formato de cada entrada: data, chat/etapa, feito, res
 
 ---
 
+## 2026-10-13 — Chat 1 (continuação) — Etapa 8: consolidação
+
+**Feito**
+- Script `homologacao/scripts/etapa8/consolidar.py` que lê as tabelas dos 10 pacotes e gera totais, achados por severidade, riscos de impacto Alto, requisitos P1 e códigos de teste (`python3 -I ... consolidar.py tudo`).
+- Pasta `homologacao/00-consolidacao/` com 6 arquivos: `00-indice.md` (totais), `01-matriz-de-riscos.md` (10 temas transversais; 34 riscos de impacto Alto), `02-plano-de-testes-integrado.md` (230 casos em 6 fases e 40 blocos, com conjunto de dados `TESTE` compartilhado; cobertura conferida por script: 230 de 230), `03-o-ideal-do-sistema.md` (54 requisitos P1 em 6 ondas, com dependências), `04-decisoes-em-aberto.md` (4 decididas, 14 em aberto com recomendação) e `TOP-10-CONFIDENCIAL.md` (não publicar).
+
+**Resultado**
+- Totais da homologação por leitura de código: 263 regras, 112 achados de segurança (5 Alta, 38 Média, 48 Baixa, 20 Informativa), 105 riscos, 133 requisitos (54 P1), 230 casos de teste.
+- Dez temas transversais explicam a maior parte dos achados: patrimônio pelo saldo inicial; valor com ponto decimal; mês/data em UTC; vocabulário duplo; barreiras só na tela; esquema não versionado; ciclo comercial frágil; sem testes de valor; legal e privacidade; cotação e moeda.
+- Esforço estimado para executar todos os testes: 4,5 dias úteis mais duas janelas de calendário (virada de mês).
+
+**Parou em**
+- Fim da Etapa 8. A fase de leitura de código está concluída para todos os módulos. Nenhum teste executado; nenhum arquivo do sistema alterado.
+
+**Próximo passo (proposta)**
+- Etapa 9: execução da Fase 1 do plano integrado (8 consultas só de leitura no banco de teste, meio dia), com o dono do projeto rodando as consultas e o analista registrando o resultado nos pacotes (regras passam de "A confirmar no teste" para "Validada" ou viram achado novo). Em seguida, Fase 2 (receita, sandbox do Mercado Pago).
+
+**O que revisar**
+- `04-decisoes-em-aberto.md`: as 14 decisões, em especial D1 (bloqueio comercial na API), D2 (fechamento de período) e D11 (Kora visível antes do aviso).
+- `TOP-10-CONFIDENCIAL.md` e todos os `SEGURANCA-CONFIDENCIAL.md`: não publicar.
+- Severidades, prioridades e ondas são inferência do analista de homologação.
+
+---
+
 ## 2026-10-13 — Chat 1 (continuação) — Etapa 7: módulo IA (Kora e insights)
 
 **Feito**
