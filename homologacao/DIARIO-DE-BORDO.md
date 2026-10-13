@@ -4,6 +4,34 @@ Entrada mais nova no topo. Formato de cada entrada: data, chat/etapa, feito, res
 
 ---
 
+## 2026-10-13 — Chat 1 (continuação) — Etapa 5: módulo DSH
+
+**Feito**
+- Leitura integral de `dashboard.js` (função `load` de 40 instruções), `dashboard-movements.js` e das duas telas.
+- Pacote completo de **DSH** (`homologacao/DSH/`, 11 arquivos).
+- 2 scripts em `homologacao/scripts/etapa5/`: `variacao-e-graficos.js` (variação vs. mês anterior, rosca, evolução) e `visao-gerencial.js` (mesmo mês nas duas telas, lado a lado).
+
+**Resultado (principais achados; detalhes no pacote)**
+- 22 regras; 3 fluxos; 10 achados de segurança; 18 casos de teste; 10 requisitos.
+- **Dashboard e Visão gerencial dão números diferentes para o mesmo mês**: a Visão gerencial soma receitas planejadas e canceladas (6.300 contra 5.000 no exemplo) e ignora ajustes de investimento (1.500 contra 1.700). O "Resultado" do mês fica superestimado (RN-DSH-012, 013, 015).
+- **Visão gerencial esconde falhas**: erro em qualquer consulta vira lista vazia e os totais aparecem como completos; o aviso vai só ao console (RN-DSH-011).
+- **Evolução do patrimônio** usa só fechamentos de investimento (que ninguém gera pelo app) e compara com um "Patrimônio atual" de outra base; sem fechamentos, a curva tem um ponto só (RN-DSH-006).
+- **Patrimônio atual com saldo inicial das contas** também no dashboard (mesmo defeito do Planejamento), e o objetivo rápido ignora a opção "considerar patrimônio inicial" que o Planejamento respeita (RN-DSH-003, 007).
+- Resgates de investimento não aparecem como movimento em nenhuma tela; variação mostra "+100 %" sem mês anterior e seta fixa; tradução parcial para inglês; mês em UTC.
+
+**Parou em**
+- Fim da Etapa 5, sem execução de testes. Nenhum arquivo do sistema foi alterado.
+
+**Próximo passo (proposta)**
+- Etapa 6: módulos ASS (assinatura: teste grátis, carência, Mercado Pago, cotação PTAX, edge functions `mp-*`) e ADM (administração), com conferência de valores e prazos por script. É a etapa com mais código de servidor (cerca de 1.200 linhas de TypeScript).
+
+**O que revisar**
+- Decisão de produto: definição única de "investimentos do mês" (aportes? ajustes? resgates como saída negativa?) para as três telas (REQ-DSH-01).
+- Prioridade P1 de REQ-DSH-02 (evolução automática mensal) depende da decisão sobre fechamento de período (REQ-INV-04).
+- `homologacao/DSH/SEGURANCA-CONFIDENCIAL.md`: não publicar.
+
+---
+
 ## 2026-10-13 — Chat 1 (continuação) — Etapa 4: módulo PLN
 
 **Feito**
