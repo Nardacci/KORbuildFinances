@@ -19,11 +19,15 @@ Entrada mais nova no topo. Formato de cada entrada: data, chat/etapa, feito, res
 - Risco operacional para este trabalho: os testes automáticos apontam para o mesmo projeto Supabase de produção e criam registros `TESTE_E2E_`. Não rodar até confirmar ambiente de teste.
 - Duas pendências de segurança (severidade média) continuam abertas desde 2026-09-13 (políticas de acesso não versionadas; sessão inválida não força novo login).
 
+**Decisões do analista (mesmo dia, após a entrega)**
+- Ordem das etapas aprovada ("sim").
+- Ambiente de teste: o projeto Supabase de `supabase/config.toml`. Registrado no `CLAUDE.md`, seção 2, com o ponto para validar (o baseline o chama de produção).
+
 **Parou em**
-- Fim da Etapa 0. Aguardando o "sim" do analista para a ordem das etapas proposta abaixo.
+- Fim da Etapa 0, aprovada. Etapa 1 (BD + ACS) iniciada em seguida no mesmo chat.
 - `CLAUDE.md` e `homologacao/` foram gravados primeiro por engano no repositório KORbuildMatch; a pedido do analista, movidos para a raiz deste repositório (KORbuildFinances) e removidos do Match no mesmo dia.
 
-**Próximo passo (proposta, aguardando aprovação)**
+**Próximo passo (ordem aprovada em 2026-10-13)**
 1. Etapa 1: módulo BD + ACS (banco, perfis de acesso, login, cadastro, assistente inicial), porque tudo depende deles. Inclui confirmar ambiente de teste e qual projeto Supabase é qual.
 2. Etapa 2: CTA (contas e transferências) e RDP (receitas e despesas): base dos saldos.
 3. Etapa 3: INV (investimentos, lançamentos, fechamentos, posições).

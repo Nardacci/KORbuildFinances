@@ -17,7 +17,9 @@ assinatura paga e assistente de IA). O sistema **já existe** e precisa ser ente
 | Código do sistema | `https://github.com/Nardacci/KORbuildFinances.git`, branch `main` |
 | Este arquivo e `homologacao/` | Na raiz deste mesmo repositório (KORbuildFinances). Cada chat deve ser aberto neste repositório |
 | Documentos já existentes no sistema | `docs/security-diagnostic.md` e `docs/PROD_DATABASE_MIGRATION_BASELINE_2026-09-24.md` |
-| Produção | Projeto Supabase citado em `supabase/config.toml` e `supabase-config.js` (não copiar identificadores para os documentos) |
+| Ambiente de TESTE (confirmado pelo analista em 2026-10-13) | O projeto Supabase cujo `project_id` está em `supabase/config.toml` (o mesmo de `supabase-config.js`). Não copiar o identificador para os documentos |
+| Ponto para validar | `docs/PROD_DATABASE_MIGRATION_BASELINE_2026-09-24.md` chama esse mesmo projeto de "produção". Inferência: hoje existe um único ambiente, usado como homologação. Portanto: só registros com prefixo `TESTE`, nunca apagar ou alterar registros que não sejam `TESTE` |
+| Segundo projeto Supabase (citado em `docs/security-diagnostic.md`) | Não confirmado pelo analista; tratar como ambiente antigo e não usar |
 
 ## 3. Regras do projeto (obrigatórias)
 
